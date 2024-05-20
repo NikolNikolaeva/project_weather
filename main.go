@@ -5,6 +5,7 @@ import (
 	"github.com/lpernett/godotenv"
 	"log"
 	"os"
+	"project_weather/controllers"
 	"project_weather/models"
 	"project_weather/repositories"
 	"project_weather/storage"
@@ -32,10 +33,12 @@ func main() {
 		log.Fatal(err)
 	}
 
-	repo := &repositories.CityRepository{
-		DB: db,
+	controller := &controllers.CityController{
+		DB: repositories.CityRepo{
+			Db: db,
+		},
 	}
 	app := fiber.New()
-	repo.SetupRoutes(app)
+	controller.SetupRoutes(app)
 	app.Listen(":8080")
 }
