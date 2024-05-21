@@ -54,3 +54,20 @@ func (self *CityRepo) RegisterCity(city *models.City) (*models.City, error) {
 	}
 	return city, nil
 }
+
+func (self *CityRepo) UpdateCityByID(id string, city *models.City) (*models.City, error) {
+	existingCity := models.City{}
+	if err := self.Db.First(&existingCity, "id = ?", id).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.New("record not found")
+		}
+		return nil, err
+	}
+
+	// Update the city fields
+	if err := self.Db.Model(&existingCity).Updates(city).Error; err != nil {
+		return nil, err
+	}
+
+	return &existingCity, nil
+}

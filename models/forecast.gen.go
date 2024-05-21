@@ -1,20 +1,30 @@
 package models
 
-import "gorm.io/gorm"
+import (
+	"github.com/google/uuid"
+	"gorm.io/gorm"
+	"time"
+)
 
 const TableNameForecast = "forecast"
 
 type Forecast struct {
-	ID     string `json:"id" gorm:"primary_key;auto_increment"`
-	CityID uint   `json:"city_id"`
-	//period *string `json:"period"`
+	gorm.Model
+
+	ID           string    `gorm:"primaryKey" json:"id"`
+	CityID       uint      `gorm:"not null" json:"city_id"`
+	ForecastDate time.Time `gorm:"not null" json:"forecast_date"`
+	Temperature  float64   `gorm:"type:decimal(5,2)" json:"temperature"`
+	Condition    string    `gorm:"size:100" json:"condition"`
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
 }
 
 func (*Forecast) TableName() string {
 	return TableNameForecast
 }
 
-func MigrateForecast(db *gorm.DB) error {
-	err := db.AutoMigrate(&Forecast{})
-	return err
+func (self *Forecast) BeforeCreate(tx *gorm.DB) (err error) {
+	self.ID = uuid.NewString()
+	return
 }

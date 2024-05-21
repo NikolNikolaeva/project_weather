@@ -20,10 +20,40 @@ type CityController struct {
 	DB repositories.CityRepo
 }
 
+func (r *CityController) GetRoutes() []Route {
+	return []Route{
+		{
+			Method:  http.MethodPost,
+			Path:    "/cities/",
+			Handler: r.RegisterCity,
+		},
+		{
+			Method:  http.MethodGet,
+			Path:    "/cities/",
+			Handler: r.GetAllCities,
+		},
+		{
+			Method:  http.MethodGet,
+			Path:    "/cities/:id",
+			Handler: r.GetCityById,
+		},
+		{
+			Method:  http.MethodPut,
+			Path:    "/cities/:id",
+			Handler: r.UpdateCity,
+		},
+		{
+			Method:  http.MethodDelete,
+			Path:    "/cities/:id",
+			Handler: r.DeleteCity,
+		},
+	}
+}
+
 func (r *CityController) GetCityById(ctx *fiber.Ctx) error {
 	id := ctx.Params("id")
 	if id == "" {
-		ctx.Status(http.StatusInternalServerError).JSON(&fiber.Map{
+		ctx.Status(http.StatusBadRequest).JSON(&fiber.Map{
 			"status":  "error",
 			"message": "Id can't be empty",
 		})
@@ -32,7 +62,7 @@ func (r *CityController) GetCityById(ctx *fiber.Ctx) error {
 
 	city, err := r.DB.FindCityByID(id)
 	if err != nil {
-		ctx.Status(http.StatusBadRequest).JSON(&fiber.Map{
+		ctx.Status(http.StatusInternalServerError).JSON(&fiber.Map{
 			"status":  "error",
 			"message": "City not found",
 		})
@@ -58,7 +88,7 @@ func (r *CityController) DeleteCity(ctx *fiber.Ctx) error {
 	}
 
 	if id == "" {
-		ctx.Status(http.StatusInternalServerError).JSON(&fiber.Map{
+		ctx.Status(http.StatusBadRequest).JSON(&fiber.Map{
 			"status":  "error",
 			"message": "Invalid id",
 		})
@@ -66,7 +96,7 @@ func (r *CityController) DeleteCity(ctx *fiber.Ctx) error {
 	}
 	err = r.DB.DeleteCityByID(id)
 	if err != nil {
-		ctx.Status(http.StatusBadRequest).JSON(&fiber.Map{
+		ctx.Status(http.StatusInternalServerError).JSON(&fiber.Map{
 			"status":  "error",
 			"message": err,
 		})
@@ -85,7 +115,7 @@ func (r *CityController) RegisterCity(ctx *fiber.Ctx) error {
 
 	err := ctx.BodyParser(&city)
 	if err != nil {
-		ctx.Status(http.StatusUnprocessableEntity).JSON(&fiber.Map{
+		ctx.Status(http.StatusBadRequest).JSON(&fiber.Map{
 			"success": false,
 			"message": err.Error(),
 		})
@@ -94,7 +124,7 @@ func (r *CityController) RegisterCity(ctx *fiber.Ctx) error {
 
 	city, err = r.DB.RegisterCity(city)
 	if err != nil {
-		ctx.Status(http.StatusBadRequest).JSON(&fiber.Map{
+		ctx.Status(http.StatusInternalServerError).JSON(&fiber.Map{
 			"success": false,
 			"message": err.Error(),
 		})
@@ -112,55 +142,32 @@ func (r *CityController) RegisterCity(ctx *fiber.Ctx) error {
 func (r *CityController) UpdateCity(ctx *fiber.Ctx) error {
 	id := ctx.Params("id")
 
-	city, err := r.DB.FindCityByID(id)
-	// If no such note present return an error
-	if id == "" {
-		return ctx.Status(404).JSON(fiber.Map{"status": "error", "message": "No note present", "data": nil})
-	}
-
-	var updatedCity *models.City
-	err = ctx.BodyParser(&updatedCity)
-
-	if err != nil {
-		ctx.Status(http.StatusUnprocessableEntity).JSON(&fiber.Map{
-			"success": false,
-			"message": err.Error(),
+	city := new(models.City)
+	if err := ctx.BodyParser(city); err != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Cannot parse JSON",
 		})
-		return err
 	}
 
-	city.Name = updatedCity.Name
-	city.Longitude = updatedCity.Longitude
-	city.Latitude = updatedCity.Latitude
-
-	city, err = r.DB.RegisterCity(city)
+	updatedCity, err := r.DB.UpdateCityByID(id, city)
 	if err != nil {
-		ctx.Status(http.StatusBadRequest).JSON(&fiber.Map{
-			"success": false,
-			"message": err.Error(),
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": err.Error(),
 		})
-		return err
 	}
-	ctx.Status(http.StatusOK).JSON(&fiber.Map{
-		"success": true,
-		"data":    city,
-		"message": "City updated",
-	})
-	return nil
+
+	return ctx.Status(fiber.StatusOK).JSON(updatedCity)
 }
 
 func (r *CityController) GetAllCities(ctx *fiber.Ctx) error {
 
 	cities, err := r.DB.GetAllCity()
 	if err != nil {
-		ctx.Status(http.StatusBadRequest).JSON(&fiber.Map{
+		ctx.Status(http.StatusInternalServerError).JSON(&fiber.Map{
 			"status":  "error",
 			"message": err,
 		})
 		return err
-	}
-	if len(*cities) == 0 {
-		return ctx.Status(404).JSON(fiber.Map{"status": "error", "message": "No notes present", "data": nil})
 	}
 
 	return ctx.Status(http.StatusOK).JSON(&fiber.Map{
@@ -168,13 +175,4 @@ func (r *CityController) GetAllCities(ctx *fiber.Ctx) error {
 		"message": "Success",
 		"data":    cities,
 	})
-}
-
-func (r *CityController) SetupRoutes(app *fiber.App) {
-	api := app.Group("/cities")
-	api.Post("/", r.RegisterCity)
-	api.Delete("/:id", r.DeleteCity)
-	api.Get("/:id", r.GetCityById)
-	api.Put("/:id", r.UpdateCity)
-	api.Get("/", r.GetAllCities)
 }
