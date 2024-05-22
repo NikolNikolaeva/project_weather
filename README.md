@@ -8,3 +8,4 @@ Add, delete city
 Retrieve weather forecasts for a registered city by hour, day, or week.
 
 ## Technologies
+DB: PostgreSQL
