@@ -2,7 +2,6 @@ package repositories
 
 import (
 	"errors"
-	"fmt"
 	"gorm.io/gorm"
 	"project_weather/generated/dao"
 	"project_weather/generated/dao/model"
@@ -55,14 +54,12 @@ func (self *CityRepo) RegisterCity(city *model.City) (*model.City, error) {
 	).First()
 
 	if err == nil && existCity.ID != "" {
-		fmt.Println(existCity.ID)
 		return existCity, err
 	}
 
 	if err == gorm.ErrRecordNotFound {
 
 		err = self.q.City.Create(city)
-
 		if err != nil {
 			return nil, err
 		}
