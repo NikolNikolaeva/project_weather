@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/gofiber/fiber/v2"
 	"go.uber.org/fx"
-	"gorm.io/gorm"
 	"log"
 	"project_weather/config"
 	"project_weather/controllers"
@@ -31,13 +30,13 @@ func createFiberApp() *fiber.App {
 	return fiber.New()
 }
 
-func createCityController(db *gorm.DB, q *dao.Query) *controllers.CityController {
-	repo := repositories.NewCityRepo(db, q)
+func createCityController(q *dao.Query) *controllers.CityController {
+	repo := repositories.NewCityRepo(q)
 	return controllers.NewCityController(repo)
 }
 
-func createForecastController(db *gorm.DB) *controllers.ForecastController {
-	repo := repositories.NewForecastRepo(db)
+func createForecastController(q *dao.Query) *controllers.ForecastController {
+	repo := repositories.NewForecastRepo(q)
 	return controllers.NewForecastController(repo)
 }
 

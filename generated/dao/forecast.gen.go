@@ -30,7 +30,7 @@ func newForecast(db *gorm.DB, opts ...gen.DOOption) forecast {
 	_forecast.ID = field.NewString(tableName, "id")
 	_forecast.CityID = field.NewString(tableName, "city_id")
 	_forecast.ForecastDate = field.NewTime(tableName, "forecast_date")
-	_forecast.Temperature = field.NewField(tableName, "temperature")
+	_forecast.Temperature = field.NewString(tableName, "temperature")
 	_forecast.Condition = field.NewString(tableName, "condition")
 	_forecast.CreatedAt = field.NewTime(tableName, "created_at")
 	_forecast.UpdatedAt = field.NewTime(tableName, "updated_at")
@@ -47,7 +47,7 @@ type forecast struct {
 	ID           field.String
 	CityID       field.String
 	ForecastDate field.Time
-	Temperature  field.Field
+	Temperature  field.String
 	Condition    field.String
 	CreatedAt    field.Time
 	UpdatedAt    field.Time
@@ -70,7 +70,7 @@ func (f *forecast) updateTableName(table string) *forecast {
 	f.ID = field.NewString(table, "id")
 	f.CityID = field.NewString(table, "city_id")
 	f.ForecastDate = field.NewTime(table, "forecast_date")
-	f.Temperature = field.NewField(table, "temperature")
+	f.Temperature = field.NewString(table, "temperature")
 	f.Condition = field.NewString(table, "condition")
 	f.CreatedAt = field.NewTime(table, "created_at")
 	f.UpdatedAt = field.NewTime(table, "updated_at")

@@ -61,7 +61,13 @@ func createEmbeddedPostgres(configuration *config.ApplicationConfiguration) (*em
 }
 
 func createEntityManager(db *gorm.DB) *dao.Query {
+	fmt.Printf("--------------------------------\n\n=====================\n")
 	q := dao.Use(db)
+	city, err := q.City.First()
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("--------------------------------\n\n=====================%#v\n", city)
 	return q
 }
 

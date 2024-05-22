@@ -12,13 +12,13 @@ const TableNameCity = "city"
 
 // City mapped from table <city>
 type City struct {
-	ID        string      `gorm:"column:id;primaryKey;default:gen_random_uuid()" json:"id"`
-	Name      string      `gorm:"column:name;not null" json:"name"`
-	Country   string      `gorm:"column:country;not null" json:"country"`
-	Latitude  interface{} `gorm:"column:latitude;not null" json:"latitude"`
-	Longitude interface{} `gorm:"column:longitude;not null" json:"longitude"`
-	CreatedAt time.Time   `gorm:"column:created_at;default:CURRENT_TIMESTAMP" json:"created_at"`
-	UpdatedAt time.Time   `gorm:"column:updated_at;default:CURRENT_TIMESTAMP" json:"updated_at"`
+	ID        string    `gorm:"column:id;primaryKey;default:gen_random_uuid()" json:"id"`
+	Name      string    `gorm:"column:name;not null" json:"name"`
+	Country   string    `gorm:"column:country;not null" json:"country"`
+	Latitude  string    `gorm:"column:latitude;not null" json:"latitude"`
+	Longitude string    `gorm:"column:longitude;not null" json:"longitude"`
+	CreatedAt time.Time `gorm:"column:created_at;default:CURRENT_TIMESTAMP" json:"created_at"`
+	UpdatedAt time.Time `gorm:"column:updated_at;default:CURRENT_TIMESTAMP" json:"updated_at"`
 }
 
 // TableName City's table name

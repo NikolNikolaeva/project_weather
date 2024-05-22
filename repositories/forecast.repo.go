@@ -1,43 +1,71 @@
 package repositories
 
 import (
+	"errors"
 	"gorm.io/gorm"
+	"project_weather/generated/dao"
 	"project_weather/generated/dao/model"
 )
 
 type ForecastRepo struct {
-	Db *gorm.DB
+	q *dao.Query
 }
 
-func NewForecastRepo(db *gorm.DB) ForecastRepo {
+func NewForecastRepo(query *dao.Query) ForecastRepo {
 	return ForecastRepo{
-		Db: db,
+		q: query,
 	}
 }
 
-func (r *ForecastRepo) FindByID(id string) (*model.Forecast, error) {
-	var forecast model.Forecast
-	if err := r.Db.First(&forecast, "id = ?", id).Error; err != nil {
+func (self *ForecastRepo) FindByID(id string) (*model.Forecast, error) {
+	forecast, err := self.q.Forecast.Where(
+		self.q.Forecast.ID.Eq(id),
+	).First()
+	if err != nil {
 		return nil, err
 	}
-	return &forecast, nil
+	return forecast, nil
 }
 
-func (r *ForecastRepo) Create(forecast *model.Forecast) error {
-	return r.Db.Create(forecast).Error
+func (self *ForecastRepo) Create(forecast *model.Forecast) error {
+	return self.q.Forecast.Create(forecast)
 }
 
-func (r *ForecastRepo) Update(id string, forecast *model.Forecast) error {
-	return r.Db.Model(&model.Forecast{}).Where("id = ?", id).Updates(forecast).Error
+func (self *ForecastRepo) Update(id string, forecast *model.Forecast) error {
+	_, err := self.q.Forecast.Where(
+		self.q.Forecast.ID.Eq(id),
+	).First()
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return errors.New("record not found")
+		}
+		return err
+	}
+
+	if _, err := self.q.Forecast.Where(self.q.City.ID.Eq(id)).Updates(forecast); err != nil {
+		return err
+	}
+
+	return nil
 }
 
-func (r *ForecastRepo) Delete(id string) error {
-	return r.Db.Delete(&model.Forecast{}, "id = ?", id).Error
+func (self *ForecastRepo) Delete(id string) error {
+	forecast, err := self.q.Forecast.Where(
+		self.q.Forecast.ID.Eq(id),
+	).First()
+	if err != nil {
+		return err
+	}
+	_, err = self.q.Forecast.Delete(forecast)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
-func (r *ForecastRepo) FindAll() ([]model.Forecast, error) {
-	var forecasts []model.Forecast
-	if err := r.Db.Find(&forecasts).Error; err != nil {
+func (self *ForecastRepo) FindAll() ([]*model.Forecast, error) {
+	forecasts, err := self.q.Forecast.Find()
+	if err != nil {
 		return nil, err
 	}
 	return forecasts, nil

@@ -9,76 +9,82 @@ import (
 )
 
 type CityRepo struct {
-	Db *gorm.DB
-	q  *dao.Query
+	q *dao.Query
 }
 
-func NewCityRepo(db *gorm.DB, query *dao.Query) CityRepo {
-	return CityRepo{Db: db, q: query}
+func NewCityRepo(query *dao.Query) CityRepo {
+	return CityRepo{q: query}
 }
 
 func (self *CityRepo) FindCityByID(id string) (*model.City, error) {
-	var city model.City
-	result := self.Db.Where("id = ?", id).First(&city)
-	if result.Error != nil {
-		return nil, result.Error
-	}
-	return &city, nil
-}
-
-func (self *CityRepo) DeleteCityByID(id string) error {
-	city := model.City{}
-	self.Db.Find(&city, "id = ?", id)
-
-	if city.ID == "" {
-		fmt.Println(city.ID)
-		return errors.New("Record not found")
-	}
-	return self.Db.Where("id = ?", id).Delete(&city).Error
-}
-
-func (self *CityRepo) GetAllCity() ([]*model.City, error) {
-	//var cities []model.City
-	cities, err := self.q.City.Find()
+	city, err := self.q.City.Where(
+		self.q.City.ID.Eq(id),
+	).First()
 	if err != nil {
 		return nil, err
-	}
-	//cities := self.Db.Model(model.City{})
-	//result := self.Db.Find(&cities)
-	//if result.Error != nil {
-	//	return nil, result.Error
-	//}
-	return cities, nil
-}
-
-func (self *CityRepo) RegisterCity(city *model.City) (*model.City, error) {
-	cityExist := model.City{}
-	self.Db.Find(&cityExist, "name = ?", city.Name)
-
-	if cityExist.ID != "" {
-		return &cityExist, nil
-	}
-
-	result := self.Db.Create(&city)
-	if result.Error != nil {
-		return nil, result.Error
 	}
 	return city, nil
 }
 
+func (self *CityRepo) DeleteCityByID(id string) error {
+	city, err := self.q.City.Where(
+		self.q.City.ID.Eq(id),
+	).First()
+	if err != nil {
+		return err
+	}
+	_, err = self.q.City.Delete(city)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (self *CityRepo) GetAllCity() ([]*model.City, error) {
+	cities, err := self.q.City.Find()
+	if err != nil {
+		return nil, err
+	}
+	return cities, nil
+}
+
+func (self *CityRepo) RegisterCity(city *model.City) (*model.City, error) {
+
+	existCity, err := self.q.City.Where(
+		self.q.City.Name.Eq(city.Name),
+	).First()
+
+	if err == nil && existCity.ID != "" {
+		fmt.Println(existCity.ID)
+		return existCity, err
+	}
+
+	if err == gorm.ErrRecordNotFound {
+
+		err = self.q.City.Create(city)
+
+		if err != nil {
+			return nil, err
+		}
+	}
+	return city, nil
+
+}
+
 func (self *CityRepo) UpdateCityByID(id string, city *model.City) (*model.City, error) {
-	existingCity := model.City{}
-	if err := self.Db.First(&existingCity, "id = ?", id).Error; err != nil {
+	cityExist, err := self.q.City.Where(
+		self.q.City.ID.Eq(id),
+	).First()
+	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errors.New("record not found")
 		}
 		return nil, err
 	}
 
-	// Update the city fields
-	if err := self.Db.Model(&existingCity).Updates(city).Error; err != nil {
+	if _, err := self.q.City.Where(self.q.City.ID.Eq(id)).Updates(city); err != nil {
 		return nil, err
 	}
 
-	return &existingCity, nil
+	return cityExist, nil
 }

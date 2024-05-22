@@ -30,8 +30,8 @@ func newCity(db *gorm.DB, opts ...gen.DOOption) city {
 	_city.ID = field.NewString(tableName, "id")
 	_city.Name = field.NewString(tableName, "name")
 	_city.Country = field.NewString(tableName, "country")
-	_city.Latitude = field.NewField(tableName, "latitude")
-	_city.Longitude = field.NewField(tableName, "longitude")
+	_city.Latitude = field.NewString(tableName, "latitude")
+	_city.Longitude = field.NewString(tableName, "longitude")
 	_city.CreatedAt = field.NewTime(tableName, "created_at")
 	_city.UpdatedAt = field.NewTime(tableName, "updated_at")
 
@@ -47,8 +47,8 @@ type city struct {
 	ID        field.String
 	Name      field.String
 	Country   field.String
-	Latitude  field.Field
-	Longitude field.Field
+	Latitude  field.String
+	Longitude field.String
 	CreatedAt field.Time
 	UpdatedAt field.Time
 
@@ -70,8 +70,8 @@ func (c *city) updateTableName(table string) *city {
 	c.ID = field.NewString(table, "id")
 	c.Name = field.NewString(table, "name")
 	c.Country = field.NewString(table, "country")
-	c.Latitude = field.NewField(table, "latitude")
-	c.Longitude = field.NewField(table, "longitude")
+	c.Latitude = field.NewString(table, "latitude")
+	c.Longitude = field.NewString(table, "longitude")
 	c.CreatedAt = field.NewTime(table, "created_at")
 	c.UpdatedAt = field.NewTime(table, "updated_at")
 
