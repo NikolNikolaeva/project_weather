@@ -4,15 +4,21 @@ import (
 	"errors"
 	"fmt"
 	"gorm.io/gorm"
-	"project_weather/models"
+	"project_weather/generated/dao"
+	"project_weather/generated/dao/model"
 )
 
 type CityRepo struct {
 	Db *gorm.DB
+	q  *dao.Query
 }
 
-func (self *CityRepo) FindCityByID(id string) (*models.City, error) {
-	var city models.City
+func NewCityRepo(db *gorm.DB, query *dao.Query) CityRepo {
+	return CityRepo{Db: db, q: query}
+}
+
+func (self *CityRepo) FindCityByID(id string) (*model.City, error) {
+	var city model.City
 	result := self.Db.Where("id = ?", id).First(&city)
 	if result.Error != nil {
 		return nil, result.Error
@@ -21,7 +27,7 @@ func (self *CityRepo) FindCityByID(id string) (*models.City, error) {
 }
 
 func (self *CityRepo) DeleteCityByID(id string) error {
-	city := models.City{}
+	city := model.City{}
 	self.Db.Find(&city, "id = ?", id)
 
 	if city.ID == "" {
@@ -31,17 +37,22 @@ func (self *CityRepo) DeleteCityByID(id string) error {
 	return self.Db.Where("id = ?", id).Delete(&city).Error
 }
 
-func (self *CityRepo) GetAllCity() (*[]models.City, error) {
-	var cities []models.City
-	result := self.Db.Find(&cities)
-	if result.Error != nil {
-		return nil, result.Error
+func (self *CityRepo) GetAllCity() ([]*model.City, error) {
+	//var cities []model.City
+	cities, err := self.q.City.Find()
+	if err != nil {
+		return nil, err
 	}
-	return &cities, nil
+	//cities := self.Db.Model(model.City{})
+	//result := self.Db.Find(&cities)
+	//if result.Error != nil {
+	//	return nil, result.Error
+	//}
+	return cities, nil
 }
 
-func (self *CityRepo) RegisterCity(city *models.City) (*models.City, error) {
-	cityExist := models.City{}
+func (self *CityRepo) RegisterCity(city *model.City) (*model.City, error) {
+	cityExist := model.City{}
 	self.Db.Find(&cityExist, "name = ?", city.Name)
 
 	if cityExist.ID != "" {
@@ -55,8 +66,8 @@ func (self *CityRepo) RegisterCity(city *models.City) (*models.City, error) {
 	return city, nil
 }
 
-func (self *CityRepo) UpdateCityByID(id string, city *models.City) (*models.City, error) {
-	existingCity := models.City{}
+func (self *CityRepo) UpdateCityByID(id string, city *model.City) (*model.City, error) {
+	existingCity := model.City{}
 	if err := self.Db.First(&existingCity, "id = ?", id).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errors.New("record not found")

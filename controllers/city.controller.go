@@ -3,21 +3,28 @@ package controllers
 import (
 	"errors"
 	"github.com/gofiber/fiber/v2"
+	"log"
 	"net/http"
-	"project_weather/models"
+	"project_weather/generated/dao/model"
 	"project_weather/repositories"
 )
 
 type CityDB interface {
-	FindCityByID(id string) (*models.City, error)
-	RegisterCity(city *models.City) error
-	UpdateCity(city *models.City) error
+	FindCityByID(id string) (*model.City, error)
+	RegisterCity(city *model.City) error
+	UpdateCity(city *model.City) error
 	DeleteCityByID(id string) error
-	GetAllCity() ([]models.City, error)
+	GetAllCity() ([]model.City, error)
 }
 
 type CityController struct {
 	DB repositories.CityRepo
+}
+
+func NewCityController(db repositories.CityRepo) *CityController {
+	return &CityController{
+		DB: db,
+	}
 }
 
 func (r *CityController) GetRoutes() []Route {
@@ -57,15 +64,15 @@ func (r *CityController) GetCityById(ctx *fiber.Ctx) error {
 			"status":  "error",
 			"message": "Id can't be empty",
 		})
-		return errors.New("Id can't be empty")
+		return errors.New("id can't be empty")
 	}
 
 	city, err := r.DB.FindCityByID(id)
 	if err != nil {
 		ctx.Status(http.StatusInternalServerError).JSON(&fiber.Map{
-			"status":  "error",
-			"message": "City not found",
+			"status": "error",
 		})
+		log.Printf(err.Error())
 		return err
 	}
 	ctx.Status(http.StatusOK).JSON(&fiber.Map{
@@ -111,7 +118,7 @@ func (r *CityController) DeleteCity(ctx *fiber.Ctx) error {
 }
 
 func (r *CityController) RegisterCity(ctx *fiber.Ctx) error {
-	city := &models.City{}
+	city := &model.City{}
 
 	err := ctx.BodyParser(&city)
 	if err != nil {
@@ -142,7 +149,7 @@ func (r *CityController) RegisterCity(ctx *fiber.Ctx) error {
 func (r *CityController) UpdateCity(ctx *fiber.Ctx) error {
 	id := ctx.Params("id")
 
-	city := new(models.City)
+	city := new(model.City)
 	if err := ctx.BodyParser(city); err != nil {
 		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": "Cannot parse JSON",

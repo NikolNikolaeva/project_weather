@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS City
 CREATE TABLE IF NOT EXISTS Forecast
 (
     id            VARCHAR(36) DEFAULT gen_random_uuid() PRIMARY KEY,
-    city_id       INT  NOT NULL,
+    city_id       varchar(36)  NOT NULL,
     forecast_date DATE NOT NULL,
     temperature   DECIMAL(5, 2),
     condition     VARCHAR(100),

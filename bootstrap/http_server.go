@@ -8,6 +8,7 @@ import (
 	"log"
 	"project_weather/config"
 	"project_weather/controllers"
+	"project_weather/generated/dao"
 	"project_weather/repositories"
 	"slices"
 )
@@ -18,6 +19,7 @@ var FXModule_HTTPServer = fx.Module(
 		createFiberApp,
 		createAPIRoutes,
 		createCityController,
+		createForecastController,
 	),
 	fx.Invoke(
 		configureAPIRoutes,
@@ -29,17 +31,20 @@ func createFiberApp() *fiber.App {
 	return fiber.New()
 }
 
-func createCityController(db *gorm.DB) *controllers.CityController {
-	return &controllers.CityController{
-		DB: repositories.CityRepo{
-			Db: db,
-		},
-	}
+func createCityController(db *gorm.DB, q *dao.Query) *controllers.CityController {
+	repo := repositories.NewCityRepo(db, q)
+	return controllers.NewCityController(repo)
 }
 
-func createAPIRoutes(cities *controllers.CityController) []controllers.Route {
+func createForecastController(db *gorm.DB) *controllers.ForecastController {
+	repo := repositories.NewForecastRepo(db)
+	return controllers.NewForecastController(repo)
+}
+
+func createAPIRoutes(cities *controllers.CityController, forecasts *controllers.ForecastController) []controllers.Route {
 	return slices.Concat(
 		cities.GetRoutes(),
+		forecasts.GetRoutes(),
 	)
 }
 
