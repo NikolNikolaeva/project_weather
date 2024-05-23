@@ -31,4 +31,6 @@ type ApplicationConfiguration struct {
 	DBUsername             string `envconfig:"DB_USERNAME"`
 	DBPassword             string `envconfig:"DB_PASSWORD"`
 	DatabaseMigrationsPath string `envconfig:"DATABASE_MIGRATIONS_PATH"`
+
+	ApiKeyWeatherApi string `envconfig:"API_KEY_WEATHER_API"`
 }

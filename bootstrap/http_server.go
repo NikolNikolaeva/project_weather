@@ -5,9 +5,11 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"go.uber.org/fx"
 	"log"
+	"net/http"
 	"project_weather/config"
 	"project_weather/controllers"
 	"project_weather/repositories"
+	"project_weather/services"
 	"slices"
 )
 
@@ -20,6 +22,9 @@ var FXModule_HTTPServer = fx.Module(
 		controllers.NewCityController,
 		repositories.NewForecastRepo,
 		controllers.NewForecastController,
+		createWeatherApiService,
+		services.NewCityService,
+		services.NewForecastService,
 	),
 	fx.Invoke(
 		configureAPIRoutes,
@@ -31,13 +36,18 @@ func createFiberApp() *fiber.App {
 	return fiber.New()
 }
 
-func createAPIRoutes(cities *controllers.CityController, forecasts *controllers.ForecastController) []controllers.Route {
+func createAPIRoutes(cities *controllers.CityController, forecasts *controllers.ForecastController, weather *services.WeatherApiService) []controllers.Route {
 	return slices.Concat(
 		cities.GetRoutes(),
 		forecasts.GetRoutes(),
+		weather.GetRoutes(),
 	)
 }
 
+func createWeatherApiService(config *config.ApplicationConfiguration) *services.WeatherApiService {
+	client := &http.Client{}
+	return services.NewWeatherController(client, config.ApiKeyWeatherApi)
+}
 func configureAPIRoutes(app *fiber.App, routes []controllers.Route) {
 	for _, route := range routes {
 		log.Printf("Registering route: %s %s", route.Method, route.Path)
