@@ -8,7 +8,7 @@ import (
 func main() {
 	fx.New(
 		bootstrap.FXModule_Core,
-		bootstrap.FXModule_HTTPServer,
 		bootstrap.FXModule_Persistence,
+		bootstrap.FXModule_HTTPServer,
 	).Run()
 }

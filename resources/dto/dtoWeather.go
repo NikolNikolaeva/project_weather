@@ -33,7 +33,8 @@ type LocationDTO struct {
 
 // CurrentDTO represents the current weather data
 type CurrentDTO struct {
-	LastUpdated string       `json:"last_updated"` // Note: API provides this as a string
+	Location    LocationDTO  `json:"location"`
+	LastUpdated string       `json:"last_updated"`
 	TempC       float64      `json:"temp_c"`
 	Condition   ConditionDTO `json:"condition"`
 }

@@ -29,9 +29,16 @@ var FXModule_Persistence = fx.Module(
 	),
 
 	fx.Invoke(
+		registerEmbeddedPostgresStopHook,
 		performDatabaseSchemaMigration,
 	),
 )
+
+func registerEmbeddedPostgresStopHook(lc fx.Lifecycle, embeddedDB *embeddedpostgres.EmbeddedPostgres) {
+	lc.Append(fx.StopHook(func() error {
+		return embeddedDB.Stop()
+	}))
+}
 
 func createEntityManagerConnection(db *sql.DB) (*gorm.DB, error) {
 	return gorm.Open(
@@ -62,10 +69,6 @@ func createEmbeddedPostgres(configuration *config.ApplicationConfiguration) (*em
 
 func createEntityManager(db *gorm.DB) *dao.Query {
 	q := dao.Use(db)
-	_, err := q.City.First()
-	if err != nil {
-		panic(err)
-	}
 	return q
 }
 
@@ -103,13 +106,13 @@ func createDatabaseConnection(config *config.ApplicationConfiguration) (*sql.DB,
 	return db, nil
 }
 func buildDatabaseURL(config *config.ApplicationConfiguration) string {
-
 	return fmt.Sprintf(
-		"postgres://%s:%s@%s:%s/%s",
+		"postgres://%s:%s@%s:%s/%s?%s",
 		config.DBUsername,
 		config.DBPassword,
 		config.DBHost,
 		config.DBPort,
 		config.DBName,
+		"sslmode=disable&binary_parameters=yes",
 	)
 }

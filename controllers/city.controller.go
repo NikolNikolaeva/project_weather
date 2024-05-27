@@ -9,25 +9,26 @@ import (
 	"project_weather/repositories"
 )
 
-type CityDB interface {
-	FindCityByID(id string) (*model.City, error)
-	RegisterCity(city *model.City) error
-	UpdateCity(city *model.City) error
-	DeleteCityByID(id string) error
-	GetAllCity() ([]model.City, error)
+type CityDBController interface {
+	GetRoutes() []Route
+	GetCityById(ctx *fiber.Ctx) error
+	DeleteCity(ctx *fiber.Ctx) error
+	RegisterCity(ctx *fiber.Ctx) error
+	UpdateCity(ctx *fiber.Ctx) error
+	GetAllCities(ctx *fiber.Ctx) error
 }
 
-type CityController struct {
-	DB repositories.CityRepo
+type cityController struct {
+	DB repositories.CityDB
 }
 
-func NewCityController(db repositories.CityRepo) *CityController {
-	return &CityController{
+func NewCityController(db repositories.CityDB) CityDBController {
+	return &cityController{
 		DB: db,
 	}
 }
 
-func (r *CityController) GetRoutes() []Route {
+func (r *cityController) GetRoutes() []Route {
 	return []Route{
 		{
 			Method:  http.MethodPost,
@@ -57,7 +58,7 @@ func (r *CityController) GetRoutes() []Route {
 	}
 }
 
-func (r *CityController) GetCityById(ctx *fiber.Ctx) error {
+func (r *cityController) GetCityById(ctx *fiber.Ctx) error {
 	id := ctx.Params("id")
 	if id == "" {
 		ctx.Status(http.StatusBadRequest).JSON(&fiber.Map{
@@ -83,7 +84,7 @@ func (r *CityController) GetCityById(ctx *fiber.Ctx) error {
 	return nil
 }
 
-func (r *CityController) DeleteCity(ctx *fiber.Ctx) error {
+func (r *cityController) DeleteCity(ctx *fiber.Ctx) error {
 	id := ctx.Params("id")
 	city, err := r.DB.FindCityByID(id)
 
@@ -117,7 +118,7 @@ func (r *CityController) DeleteCity(ctx *fiber.Ctx) error {
 	return nil
 }
 
-func (r *CityController) RegisterCity(ctx *fiber.Ctx) error {
+func (r *cityController) RegisterCity(ctx *fiber.Ctx) error {
 	city := &model.City{}
 
 	err := ctx.BodyParser(&city)
@@ -146,7 +147,7 @@ func (r *CityController) RegisterCity(ctx *fiber.Ctx) error {
 	return nil
 }
 
-func (r *CityController) UpdateCity(ctx *fiber.Ctx) error {
+func (r *cityController) UpdateCity(ctx *fiber.Ctx) error {
 	id := ctx.Params("id")
 
 	city := new(model.City)
@@ -166,7 +167,7 @@ func (r *CityController) UpdateCity(ctx *fiber.Ctx) error {
 	return ctx.Status(fiber.StatusOK).JSON(updatedCity)
 }
 
-func (r *CityController) GetAllCities(ctx *fiber.Ctx) error {
+func (r *cityController) GetAllCities(ctx *fiber.Ctx) error {
 
 	cities, err := r.DB.GetAllCity()
 	if err != nil {
