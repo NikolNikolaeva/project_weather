@@ -6,16 +6,15 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
 	"net/http"
+	"project_weather/config"
 	"project_weather/controllers"
 	"project_weather/generated/dao/model"
 	"project_weather/repositories"
-	"project_weather/resources/dto"
+	"project_weather/resources/swagger"
 	"time"
 )
 
 const (
-	forecastUrl         = "http://api.weatherapi.com/v1/forecast.json?key=%s&q=%s&days=%v&aqi=no&alerts=no"
-	currentTimeUrl      = "http://api.weatherapi.com/v1/current.json?key=%s&q=%s&aqi=no"
 	templateDate        = "2006-01-02"
 	templateDateAndTime = "2006-01-02 15:04"
 )
@@ -23,8 +22,6 @@ const (
 type WeatherApiService interface {
 	GetRoutes() []controllers.Route
 	GetWeatherByCity(ctx *fiber.Ctx) error
-	fetchWeatherData(url string) (*dto.WeatherDTO, error)
-	formatWeatherData(weatherData *dto.WeatherDTO, period string, cityID string) (interface{}, error)
 }
 
 var periodToDays = map[string]int{
@@ -35,20 +32,22 @@ var periodToDays = map[string]int{
 }
 
 type weatherApiService struct {
-	cityRepo     repositories.CityDB
-	forecastRepo repositories.ForecastDB
+	cityRepo     repositories.CityRepo
+	forecastRepo repositories.ForecastRepo
 	client       *http.Client
 	apiKey       string
 	db           *gorm.DB
+	config       *config.ApplicationConfiguration
 }
 
-func NewWeatherService(client *http.Client, apiKey string, db *gorm.DB, cityDB repositories.CityDB, forecastDB repositories.ForecastDB) WeatherApiService {
+func NewWeatherService(client *http.Client, apiKey string, db *gorm.DB, cityDB repositories.CityRepo, forecastDB repositories.ForecastRepo, config *config.ApplicationConfiguration) WeatherApiService {
 	return &weatherApiService{
 		client:       client,
 		apiKey:       apiKey,
 		db:           db,
 		cityRepo:     cityDB,
 		forecastRepo: forecastDB,
+		config:       config,
 	}
 }
 
@@ -75,9 +74,9 @@ func (self *weatherApiService) GetWeatherByCity(ctx *fiber.Ctx) error {
 
 	var url string
 	if period == "current" {
-		url = fmt.Sprintf(currentTimeUrl, self.apiKey, cityName)
+		url = fmt.Sprintf(self.config.CurrentTimeUrl, self.apiKey, cityName)
 	} else {
-		url = fmt.Sprintf(forecastUrl, self.apiKey, cityName, days)
+		url = fmt.Sprintf(self.config.ForecastUrl, self.apiKey, cityName, days)
 	}
 
 	weatherData, err := self.fetchWeatherData(url)
@@ -108,7 +107,7 @@ func (self *weatherApiService) GetWeatherByCity(ctx *fiber.Ctx) error {
 	return ctx.Status(http.StatusOK).JSON(formattedData)
 }
 
-func (self *weatherApiService) fetchWeatherData(url string) (*dto.WeatherDTO, error) {
+func (self *weatherApiService) fetchWeatherData(url string) (*swagger.WeatherDTO, error) {
 	response, err := self.client.Get(url)
 	if err != nil {
 		return nil, err
@@ -119,7 +118,7 @@ func (self *weatherApiService) fetchWeatherData(url string) (*dto.WeatherDTO, er
 		return nil, fmt.Errorf("failed to fetch weather data: status code %d", response.StatusCode)
 	}
 
-	var weatherData dto.WeatherDTO
+	var weatherData swagger.WeatherDTO
 	if err := json.NewDecoder(response.Body).Decode(&weatherData); err != nil {
 		return nil, fmt.Errorf("failed to parse weather data: %v", err)
 	}
@@ -127,29 +126,31 @@ func (self *weatherApiService) fetchWeatherData(url string) (*dto.WeatherDTO, er
 	return &weatherData, nil
 }
 
-func (self *weatherApiService) formatWeatherData(weatherData *dto.WeatherDTO, period string, cityID string) (interface{}, error) {
+func (self *weatherApiService) formatWeatherData(weatherData *swagger.WeatherDTO, period string, cityID string) ([]swagger.ForecastDTO, error) {
+
+	var forecasts []swagger.ForecastDTO
+
 	if period == "current" {
 		// Format current weather data
 		lastUpdated, _ := time.Parse(templateDateAndTime, weatherData.Current.LastUpdated)
-		currentData := dto.ForecastDTO{
+		currentData := swagger.ForecastDTO{
 			CityID:       cityID,
 			ForecastDate: lastUpdated,
 			Temperature:  fmt.Sprintf("%.1f", weatherData.Current.TempC),
 			Condition:    weatherData.Current.Condition.Text,
 		}
-
-		return currentData, nil
+		forecasts = append(forecasts, currentData)
+		return forecasts, nil
 	}
 
 	// Format forecast weather data
-	var forecasts []dto.ForecastDTO
 	for _, day := range weatherData.Forecast.ForecastDays {
 		date, err := time.Parse(templateDate, day.Date)
-		fmt.Println(date, err)
+
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse forecast date: %v", err)
 		}
-		forecast := dto.ForecastDTO{
+		forecast := swagger.ForecastDTO{
 			CityID:       cityID,
 			ForecastDate: date,
 			Temperature:  fmt.Sprintf("%.1f", day.Day.AvgTempC),

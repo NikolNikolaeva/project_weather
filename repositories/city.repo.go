@@ -7,7 +7,7 @@ import (
 	"project_weather/generated/dao/model"
 )
 
-type CityDB interface {
+type CityRepo interface {
 	FindCityByID(id string) (*model.City, error)
 	RegisterCity(city *model.City) (*model.City, error)
 	UpdateCityByID(id string, city *model.City) (*model.City, error)
@@ -19,7 +19,7 @@ type cityRepo struct {
 	q *dao.Query
 }
 
-func NewCityRepo(query *dao.Query) CityDB {
+func NewCityRepo(query *dao.Query) CityRepo {
 	return &cityRepo{q: query}
 }
 

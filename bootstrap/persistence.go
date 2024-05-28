@@ -107,12 +107,13 @@ func createDatabaseConnection(config *config.ApplicationConfiguration) (*sql.DB,
 }
 func buildDatabaseURL(config *config.ApplicationConfiguration) string {
 	return fmt.Sprintf(
-		"postgres://%s:%s@%s:%s/%s?%s",
+		"postgres://%s:%s@%s:%s/%s?sslmode=%s&binary_parameters=%s",
 		config.DBUsername,
 		config.DBPassword,
 		config.DBHost,
 		config.DBPort,
 		config.DBName,
-		"sslmode=disable&binary_parameters=yes",
+		config.SSLMode,
+		config.BinaryParameter,
 	)
 }

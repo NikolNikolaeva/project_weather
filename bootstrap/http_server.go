@@ -37,7 +37,7 @@ func createFiberApp() *fiber.App {
 	return fiber.New()
 }
 
-func createAPIRoutes(cities controllers.CityDBController, forecasts controllers.ForecastDBController, weather services.WeatherApiService) []controllers.Route {
+func createAPIRoutes(cities controllers.CityController, forecasts controllers.ForecastController, weather services.WeatherApiService) []controllers.Route {
 	return slices.Concat(
 		cities.GetRoutes(),
 		forecasts.GetRoutes(),
@@ -49,24 +49,25 @@ func createHTTPClient() *http.Client {
 	return services.NewHTTPClient()
 }
 
-func createCityRepo(q *dao.Query) repositories.CityDB {
+func createCityRepo(q *dao.Query) repositories.CityRepo {
 	return repositories.NewCityRepo(q)
 }
 
-func createForecastRepo(q *dao.Query) repositories.ForecastDB {
+func createForecastRepo(q *dao.Query) repositories.ForecastRepo {
 	return repositories.NewForecastRepo(q)
 }
 
-func createForecastController(db repositories.ForecastDB) controllers.ForecastDBController {
+func createForecastController(db repositories.ForecastRepo) controllers.ForecastController {
 	return controllers.NewForecastController(db)
 }
 
-func createCityController(db repositories.CityDB) controllers.CityDBController {
+func createCityController(db repositories.CityRepo) controllers.CityController {
 	return controllers.NewCityController(db)
 }
 
-func createWeatherApiService(config *config.ApplicationConfiguration, client *http.Client, db *gorm.DB, cityRepo repositories.CityDB, forecastDB repositories.ForecastDB) services.WeatherApiService {
-	return services.NewWeatherService(client, config.ApiKeyWeatherApi, db, cityRepo, forecastDB)
+func createWeatherApiService(config *config.ApplicationConfiguration, client *http.Client, db *gorm.DB, cityRepo repositories.CityRepo, forecastDB repositories.ForecastRepo, configuration *config.ApplicationConfiguration) services.WeatherApiService {
+
+	return services.NewWeatherService(client, config.ApiKeyWeatherApi, db, cityRepo, forecastDB, configuration)
 }
 func configureAPIRoutes(app *fiber.App, routes []controllers.Route) {
 	for _, route := range routes {

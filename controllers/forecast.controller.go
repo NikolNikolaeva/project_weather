@@ -7,7 +7,7 @@ import (
 	"project_weather/repositories"
 )
 
-type ForecastDBController interface {
+type ForecastController interface {
 	GetRoutes() []Route
 	CreateForecast(ctx *fiber.Ctx) error
 	GetAllForecasts(ctx *fiber.Ctx) error
@@ -17,10 +17,10 @@ type ForecastDBController interface {
 }
 
 type forecastController struct {
-	DB repositories.ForecastDB
+	DB repositories.ForecastRepo
 }
 
-func NewForecastController(db repositories.ForecastDB) ForecastDBController {
+func NewForecastController(db repositories.ForecastRepo) ForecastController {
 	return &forecastController{
 		DB: db,
 	}

@@ -7,7 +7,7 @@ import (
 	"project_weather/generated/dao/model"
 )
 
-type ForecastDB interface {
+type ForecastRepo interface {
 	FindByID(id string) (*model.Forecast, error)
 	Create(forecast *model.Forecast) error
 	Update(id string, forecast *model.Forecast) error
@@ -19,7 +19,7 @@ type forecastRepo struct {
 	q *dao.Query
 }
 
-func NewForecastRepo(query *dao.Query) ForecastDB {
+func NewForecastRepo(query *dao.Query) ForecastRepo {
 	return &forecastRepo{
 		q: query,
 	}

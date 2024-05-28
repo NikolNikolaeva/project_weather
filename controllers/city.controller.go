@@ -9,7 +9,7 @@ import (
 	"project_weather/repositories"
 )
 
-type CityDBController interface {
+type CityController interface {
 	GetRoutes() []Route
 	GetCityById(ctx *fiber.Ctx) error
 	DeleteCity(ctx *fiber.Ctx) error
@@ -19,10 +19,10 @@ type CityDBController interface {
 }
 
 type cityController struct {
-	DB repositories.CityDB
+	DB repositories.CityRepo
 }
 
-func NewCityController(db repositories.CityDB) CityDBController {
+func NewCityController(db repositories.CityRepo) CityController {
 	return &cityController{
 		DB: db,
 	}
