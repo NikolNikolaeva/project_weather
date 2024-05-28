@@ -1,9 +1,10 @@
 package bootstrap
 
 import (
-	"go.uber.org/fx"
 	"os"
-	"project_weather/config"
+
+	"github.com/NikolNikolaeva/project_weather/config"
+	"go.uber.org/fx"
 )
 
 var FXModule_Core = fx.Module(

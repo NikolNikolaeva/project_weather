@@ -2,9 +2,10 @@ package repositories
 
 import (
 	"errors"
+
+	"github.com/NikolNikolaeva/project_weather/generated/dao"
+	"github.com/NikolNikolaeva/project_weather/generated/dao/model"
 	"gorm.io/gorm"
-	"project_weather/generated/dao"
-	"project_weather/generated/dao/model"
 )
 
 type ForecastRepo interface {

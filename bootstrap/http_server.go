@@ -2,17 +2,18 @@ package bootstrap
 
 import (
 	"fmt"
-	"github.com/gofiber/fiber/v2"
-	"go.uber.org/fx"
-	"gorm.io/gorm"
 	"log"
 	"net/http"
-	"project_weather/config"
-	"project_weather/controllers"
-	"project_weather/generated/dao"
-	"project_weather/repositories"
-	"project_weather/services"
 	"slices"
+
+	"github.com/NikolNikolaeva/project_weather/config"
+	"github.com/NikolNikolaeva/project_weather/controllers"
+	"github.com/NikolNikolaeva/project_weather/generated/dao"
+	"github.com/NikolNikolaeva/project_weather/repositories"
+	"github.com/NikolNikolaeva/project_weather/services"
+
+	"github.com/gofiber/fiber/v2"
+	"go.uber.org/fx"
 )
 
 var FXModule_HTTPServer = fx.Module(
@@ -26,6 +27,8 @@ var FXModule_HTTPServer = fx.Module(
 		createForecastController,
 		createWeatherApiService,
 		createHTTPClient,
+		services.NewWeatherHandler,
+		services.NewWeatherDataGetter,
 	),
 	fx.Invoke(
 		configureAPIRoutes,
@@ -65,9 +68,8 @@ func createCityController(db repositories.CityRepo) controllers.CityController {
 	return controllers.NewCityController(db)
 }
 
-func createWeatherApiService(config *config.ApplicationConfiguration, client *http.Client, db *gorm.DB, cityRepo repositories.CityRepo, forecastDB repositories.ForecastRepo, configuration *config.ApplicationConfiguration) services.WeatherApiService {
-
-	return services.NewWeatherService(client, config.ApiKeyWeatherApi, db, cityRepo, forecastDB, configuration)
+func createWeatherApiService(config *config.ApplicationConfiguration, xHandler services.WeatherHandler) services.WeatherApiService {
+	return services.NewWeatherService(config.ApiKeyWeatherApi, xHandler, config)
 }
 func configureAPIRoutes(app *fiber.App, routes []controllers.Route) {
 	for _, route := range routes {

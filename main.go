@@ -1,8 +1,8 @@
 package main
 
 import (
+	"github.com/NikolNikolaeva/project_weather/bootstrap"
 	"go.uber.org/fx"
-	"project_weather/bootstrap"
 )
 
 func main() {

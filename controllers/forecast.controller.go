@@ -1,10 +1,11 @@
 package controllers
 
 import (
-	"github.com/gofiber/fiber/v2"
 	"net/http"
-	"project_weather/generated/dao/model"
-	"project_weather/repositories"
+
+	"github.com/NikolNikolaeva/project_weather/generated/dao/model"
+	"github.com/NikolNikolaeva/project_weather/repositories"
+	"github.com/gofiber/fiber/v2"
 )
 
 type ForecastController interface {

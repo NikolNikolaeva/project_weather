@@ -16,7 +16,7 @@ import (
 
 	"gorm.io/plugin/dbresolver"
 
-	"project_weather/generated/dao/model"
+	"github.com/NikolNikolaeva/project_weather/generated/dao/model"
 )
 
 func newCity(db *gorm.DB, opts ...gen.DOOption) city {
