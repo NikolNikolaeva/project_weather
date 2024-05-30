@@ -31,4 +31,11 @@ type ApplicationConfiguration struct {
 	DBUsername             string `envconfig:"DB_USERNAME"`
 	DBPassword             string `envconfig:"DB_PASSWORD"`
 	DatabaseMigrationsPath string `envconfig:"DATABASE_MIGRATIONS_PATH"`
+	SSLMode                string `envconfig:"SSL_MODE"`
+	BinaryParameter        string `envconfig:"BINARY_PARAMETER"`
+
+	ApiKeyWeatherApi string `envconfig:"API_KEY_WEATHER_API"`
+
+	ForecastUrl    string `envconfig:"FORECAST_URL"`
+	CurrentTimeUrl string `envconfig:"CURRENT_TIME_URL"`
 }

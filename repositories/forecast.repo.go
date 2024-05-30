@@ -2,22 +2,31 @@ package repositories
 
 import (
 	"errors"
+
+	"github.com/NikolNikolaeva/project_weather/generated/dao"
+	"github.com/NikolNikolaeva/project_weather/generated/dao/model"
 	"gorm.io/gorm"
-	"project_weather/generated/dao"
-	"project_weather/generated/dao/model"
 )
 
-type ForecastRepo struct {
+type ForecastRepo interface {
+	FindByID(id string) (*model.Forecast, error)
+	Create(forecast *model.Forecast) error
+	Update(id string, forecast *model.Forecast) error
+	Delete(id string) error
+	FindAll() ([]*model.Forecast, error)
+}
+
+type forecastRepo struct {
 	q *dao.Query
 }
 
 func NewForecastRepo(query *dao.Query) ForecastRepo {
-	return ForecastRepo{
+	return &forecastRepo{
 		q: query,
 	}
 }
 
-func (self *ForecastRepo) FindByID(id string) (*model.Forecast, error) {
+func (self *forecastRepo) FindByID(id string) (*model.Forecast, error) {
 	forecast, err := self.q.Forecast.Where(
 		self.q.Forecast.ID.Eq(id),
 	).First()
@@ -27,11 +36,12 @@ func (self *ForecastRepo) FindByID(id string) (*model.Forecast, error) {
 	return forecast, nil
 }
 
-func (self *ForecastRepo) Create(forecast *model.Forecast) error {
-	return self.q.Forecast.Create(forecast)
+func (self *forecastRepo) Create(forecast *model.Forecast) error {
+	err := self.q.Forecast.Create(forecast)
+	return err
 }
 
-func (self *ForecastRepo) Update(id string, forecast *model.Forecast) error {
+func (self *forecastRepo) Update(id string, forecast *model.Forecast) error {
 	_, err := self.q.Forecast.Where(
 		self.q.Forecast.ID.Eq(id),
 	).First()
@@ -49,7 +59,7 @@ func (self *ForecastRepo) Update(id string, forecast *model.Forecast) error {
 	return nil
 }
 
-func (self *ForecastRepo) Delete(id string) error {
+func (self *forecastRepo) Delete(id string) error {
 	forecast, err := self.q.Forecast.Where(
 		self.q.Forecast.ID.Eq(id),
 	).First()
@@ -63,7 +73,7 @@ func (self *ForecastRepo) Delete(id string) error {
 	return nil
 }
 
-func (self *ForecastRepo) FindAll() ([]*model.Forecast, error) {
+func (self *forecastRepo) FindAll() ([]*model.Forecast, error) {
 	forecasts, err := self.q.Forecast.Find()
 	if err != nil {
 		return nil, err

@@ -2,13 +2,18 @@ package bootstrap
 
 import (
 	"fmt"
+	"log"
+	"net/http"
+	"slices"
+
+	"github.com/NikolNikolaeva/project_weather/config"
+	"github.com/NikolNikolaeva/project_weather/controllers"
+	"github.com/NikolNikolaeva/project_weather/generated/dao"
+	"github.com/NikolNikolaeva/project_weather/repositories"
+	"github.com/NikolNikolaeva/project_weather/services"
+
 	"github.com/gofiber/fiber/v2"
 	"go.uber.org/fx"
-	"log"
-	"project_weather/config"
-	"project_weather/controllers"
-	"project_weather/repositories"
-	"slices"
 )
 
 var FXModule_HTTPServer = fx.Module(
@@ -16,10 +21,14 @@ var FXModule_HTTPServer = fx.Module(
 	fx.Provide(
 		createFiberApp,
 		createAPIRoutes,
-		repositories.NewCityRepo,
-		controllers.NewCityController,
-		repositories.NewForecastRepo,
-		controllers.NewForecastController,
+		createCityRepo,
+		createCityController,
+		createForecastRepo,
+		createForecastController,
+		createWeatherApiService,
+		createHTTPClient,
+		services.NewWeatherHandler,
+		services.NewWeatherDataGetter,
 	),
 	fx.Invoke(
 		configureAPIRoutes,
@@ -31,13 +40,37 @@ func createFiberApp() *fiber.App {
 	return fiber.New()
 }
 
-func createAPIRoutes(cities *controllers.CityController, forecasts *controllers.ForecastController) []controllers.Route {
+func createAPIRoutes(cities controllers.CityController, forecasts controllers.ForecastController, weather services.WeatherApiService) []controllers.Route {
 	return slices.Concat(
 		cities.GetRoutes(),
 		forecasts.GetRoutes(),
+		weather.GetRoutes(),
 	)
 }
 
+func createHTTPClient() *http.Client {
+	return services.NewHTTPClient()
+}
+
+func createCityRepo(q *dao.Query) repositories.CityRepo {
+	return repositories.NewCityRepo(q)
+}
+
+func createForecastRepo(q *dao.Query) repositories.ForecastRepo {
+	return repositories.NewForecastRepo(q)
+}
+
+func createForecastController(db repositories.ForecastRepo) controllers.ForecastController {
+	return controllers.NewForecastController(db)
+}
+
+func createCityController(db repositories.CityRepo) controllers.CityController {
+	return controllers.NewCityController(db)
+}
+
+func createWeatherApiService(config *config.ApplicationConfiguration, xHandler services.WeatherHandler) services.WeatherApiService {
+	return services.NewWeatherService(config.ApiKeyWeatherApi, xHandler, config)
+}
 func configureAPIRoutes(app *fiber.App, routes []controllers.Route) {
 	for _, route := range routes {
 		log.Printf("Registering route: %s %s", route.Method, route.Path)
