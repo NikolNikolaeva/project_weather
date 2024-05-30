@@ -1,7 +1,10 @@
 package services
 
 import (
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"os"
 	"time"
 
 	"github.com/NikolNikolaeva/project_weather/generated/dao/model"
@@ -9,21 +12,61 @@ import (
 	"github.com/NikolNikolaeva/project_weather/resources/swagger"
 )
 
+const (
+	templateDate        = "2006-01-02"
+	templateDateAndTime = "2006-01-02 15:04 "
+)
+
+type Cred struct {
+	ApiKey string `json:"apiKey"`
+}
+
 type WeatherHandler interface {
 	Handle(url, period string) ([]swagger.ForecastDTO, error)
+	GetUrlForWeatherApi(period string, apiKey string, city string, days int, ForecastUrl string, CurrentTimeUrl string) string
+	getApiKey(credFile string) (string, error)
 }
 
 type weatherHandler struct {
-	cityRepo repositories.CityRepo
-	forecastRepo repositories.ForecastRepo
+	cityRepo          repositories.CityRepo
+	forecastRepo      repositories.ForecastRepo
 	weatherDataGetter WeatherDataGetter
 }
 
 func NewWeatherHandler(cityRepo repositories.CityRepo, foreCastRepo repositories.ForecastRepo, weatherDataGetter WeatherDataGetter) WeatherHandler {
 	return &weatherHandler{
-		cityRepo:     cityRepo,
-		forecastRepo: foreCastRepo,
+		cityRepo:          cityRepo,
+		forecastRepo:      foreCastRepo,
 		weatherDataGetter: weatherDataGetter,
+	}
+}
+
+func (self *weatherHandler) getApiKey(credFile string) (string, error) {
+	jsonFile, err := os.Open(credFile)
+	if err != nil {
+		return "", err
+	}
+	defer jsonFile.Close()
+
+	byteValue, err := ioutil.ReadAll(jsonFile)
+	if err != nil {
+		return "", err
+	}
+
+	var cred Cred = Cred{}
+	json.Unmarshal(byteValue, &cred)
+
+	if err != nil {
+		return "", err
+	}
+	return cred.ApiKey, nil
+}
+
+func (self *weatherHandler) GetUrlForWeatherApi(period string, apiKey string, city string, days int, ForecastUrl string, CurrentTimeUrl string) string {
+	if period == "current" {
+		return fmt.Sprintf(CurrentTimeUrl, apiKey, city)
+	} else {
+		return fmt.Sprintf(ForecastUrl, apiKey, city, days)
 	}
 }
 
@@ -39,6 +82,7 @@ func (self *weatherHandler) Handle(url, period string) ([]swagger.ForecastDTO, e
 		Latitude:  fmt.Sprintf("%f", weatherData.Location.Lat),
 		Longitude: fmt.Sprintf("%f", weatherData.Location.Lon),
 	}
+
 	city, err = self.cityRepo.RegisterCity(city)
 	if err != nil {
 		return nil, err
@@ -66,7 +110,7 @@ func (self *weatherHandler) formatWeatherForecastData(weatherData *swagger.Weath
 	var forecasts []swagger.ForecastDTO
 	for _, day := range weatherData.Forecast.ForecastDays {
 		date, err := time.Parse(templateDate, day.Date)
-		fmt.Println(date, err)
+
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse forecast date: %v", err)
 		}
@@ -97,6 +141,7 @@ func (self *weatherHandler) formatWeatherForecastData(weatherData *swagger.Weath
 func (self *weatherHandler) formatWeatherCurrentData(weatherData *swagger.WeatherDTO, cityID string) (swagger.ForecastDTO, error) {
 	// Format current weather data
 	lastUpdated, err := time.Parse(templateDateAndTime, weatherData.Current.LastUpdated)
+	fmt.Println(lastUpdated)
 	if err != nil {
 		return swagger.ForecastDTO{}, err
 	}

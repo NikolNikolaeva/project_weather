@@ -1,18 +1,11 @@
 package services
 
 import (
-	"fmt"
-	"net/http"
-
 	"github.com/NikolNikolaeva/project_weather/config"
 	"github.com/NikolNikolaeva/project_weather/controllers"
+	"net/http"
 
 	"github.com/gofiber/fiber/v2"
-)
-
-const (
-	templateDate        = "2006-01-02"
-	templateDateAndTime = "2006-01-02 15:04"
 )
 
 type WeatherApiService interface {
@@ -28,21 +21,21 @@ var periodToDays = map[string]int{
 }
 
 type weatherApiService struct {
-	xHandler WeatherHandler
-	apiKey       string
-	config       *config.ApplicationConfiguration
+	weatherHandler WeatherHandler
+	config         *config.ApplicationConfiguration
+	credFile       string
 }
 
 func NewWeatherService(
-	apiKey string,
 	xHandler WeatherHandler,
-	config       *config.ApplicationConfiguration,
-	) WeatherApiService {
+	config *config.ApplicationConfiguration,
+	credFile string,
+) WeatherApiService {
 
 	return &weatherApiService{
-		apiKey:       apiKey,
-		xHandler: xHandler,
-		config: config,
+		weatherHandler: xHandler,
+		config:         config,
+		credFile:       credFile,
 	}
 }
 
@@ -67,15 +60,14 @@ func (self *weatherApiService) GetWeatherByCity(ctx *fiber.Ctx) error {
 		})
 	}
 
-	// TODO: Move to the new class
-	var url string
-	if period == "current" {
-		url = fmt.Sprintf(self.config.CurrentTimeUrl, self.apiKey, cityName)
-	} else {
-		url = fmt.Sprintf(self.config.ForecastUrl, self.apiKey, cityName, days)
-	}
+	apiKey, err := self.weatherHandler.getApiKey(self.credFile)
 
-	res, err := self.xHandler.Handle(url, period)
+	if err != nil {
+		return err
+	}
+	url := self.weatherHandler.GetUrlForWeatherApi(period, apiKey, cityName, days, self.config.ForecastUrl, self.config.CurrentTimeUrl)
+
+	res, err := self.weatherHandler.Handle(url, period)
 	if err != nil {
 		ctx.Status(http.StatusInternalServerError)
 	}

@@ -27,8 +27,8 @@ var FXModule_HTTPServer = fx.Module(
 		createForecastController,
 		createWeatherApiService,
 		createHTTPClient,
-		services.NewWeatherHandler,
-		services.NewWeatherDataGetter,
+		createWetherHandler,
+		createWeatherDataGetter,
 	),
 	fx.Invoke(
 		configureAPIRoutes,
@@ -46,6 +46,14 @@ func createAPIRoutes(cities controllers.CityController, forecasts controllers.Fo
 		forecasts.GetRoutes(),
 		weather.GetRoutes(),
 	)
+}
+
+func createWeatherDataGetter(client *http.Client) services.WeatherDataGetter {
+	return services.NewWeatherDataGetter(client)
+}
+
+func createWetherHandler(cityRepo repositories.CityRepo, forecastRepo repositories.ForecastRepo, getter services.WeatherDataGetter) services.WeatherHandler {
+	return services.NewWeatherHandler(cityRepo, forecastRepo, getter)
 }
 
 func createHTTPClient() *http.Client {
@@ -68,9 +76,11 @@ func createCityController(db repositories.CityRepo) controllers.CityController {
 	return controllers.NewCityController(db)
 }
 
-func createWeatherApiService(config *config.ApplicationConfiguration, xHandler services.WeatherHandler) services.WeatherApiService {
-	return services.NewWeatherService(config.ApiKeyWeatherApi, xHandler, config)
+func createWeatherApiService(weatherHandler services.WeatherHandler, config *config.ApplicationConfiguration) services.WeatherApiService {
+
+	return services.NewWeatherService(weatherHandler, config, config.CredFile)
 }
+
 func configureAPIRoutes(app *fiber.App, routes []controllers.Route) {
 	for _, route := range routes {
 		log.Printf("Registering route: %s %s", route.Method, route.Path)

@@ -5,6 +5,7 @@ go 1.22
 require (
 	github.com/fergusstrange/embedded-postgres v1.27.0
 	github.com/gofiber/fiber/v2 v2.52.4
+	github.com/golang/mock v1.6.0
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/lib/pq v1.10.9
 	github.com/lpernett/godotenv v0.0.0-20230527005122-0de1d4c5ef5e
