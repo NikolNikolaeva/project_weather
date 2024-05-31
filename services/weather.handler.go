@@ -23,8 +23,7 @@ type Cred struct {
 
 type WeatherHandler interface {
 	Handle(url, period string) ([]swagger.ForecastDTO, error)
-	GetUrlForWeatherApi(period string, apiKey string, city string, days int, ForecastUrl string, CurrentTimeUrl string) string
-	getApiKey(credFile string) (string, error)
+	GetUrlForWeatherApi(period string, apiKey string, city string, days int, ForecastUrl string, CurrentTimeUrl string) (string, error)
 }
 
 type weatherHandler struct {
@@ -62,11 +61,16 @@ func (self *weatherHandler) getApiKey(credFile string) (string, error) {
 	return cred.ApiKey, nil
 }
 
-func (self *weatherHandler) GetUrlForWeatherApi(period string, apiKey string, city string, days int, ForecastUrl string, CurrentTimeUrl string) string {
+func (self *weatherHandler) GetUrlForWeatherApi(period string, credFile string, city string, days int, ForecastUrl string, CurrentTimeUrl string) (string, error) {
+
+	apiKey, err := self.getApiKey(credFile)
+	if err != nil {
+		return "", err
+	}
 	if period == "current" {
-		return fmt.Sprintf(CurrentTimeUrl, apiKey, city)
+		return fmt.Sprintf(CurrentTimeUrl, apiKey, city), nil
 	} else {
-		return fmt.Sprintf(ForecastUrl, apiKey, city, days)
+		return fmt.Sprintf(ForecastUrl, apiKey, city, days), nil
 	}
 }
 

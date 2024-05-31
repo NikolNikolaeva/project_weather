@@ -1,14 +1,14 @@
 package controllers
 
 import (
+	"encoding/json"
+	"github.com/gofiber/fiber/v2"
+	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
-
-	"github.com/gofiber/fiber/v2"
-	"github.com/golang/mock/gomock"
-	"github.com/stretchr/testify/assert"
 
 	"github.com/NikolNikolaeva/project_weather/generated/dao/model"
 	"github.com/NikolNikolaeva/project_weather/mocks"
@@ -80,6 +80,15 @@ func TestGetForecastByID(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
+
+	var responseBody struct {
+		Err error `json:"err"`
+	}
+
+	err = json.NewDecoder(resp.Body).Decode(&responseBody)
+
+	assert.NoError(t, err)
+	assert.Equal(t, nil, responseBody.Err)
 }
 
 func TestUpdateForecast(t *testing.T) {
@@ -104,6 +113,15 @@ func TestUpdateForecast(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
+
+	var responseBody struct {
+		Err error `json:"err"`
+	}
+
+	err = json.NewDecoder(resp.Body).Decode(&responseBody)
+
+	assert.NoError(t, err)
+	assert.Equal(t, nil, responseBody.Err)
 }
 
 func TestDeleteForecast(t *testing.T) {
@@ -125,4 +143,5 @@ func TestDeleteForecast(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
+
 }

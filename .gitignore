@@ -17,9 +17,10 @@
 # Dependency directories (remove the comment below to include it)
 # vendor/
 
-creds.json
+cred.json
 
 # Go workspace file
 go.work
 .idea/
 vendor/
+project_weather

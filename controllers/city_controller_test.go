@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -34,6 +35,16 @@ func Test_GetCityById(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
+
+	var responseBody struct {
+		Status string      `json:"status"`
+		Data   *model.City `json:"data"`
+	}
+
+	err = json.NewDecoder(resp.Body).Decode(&responseBody)
+	assert.NoError(t, err)
+	assert.Equal(t, "success", responseBody.Status)
+	assert.Equal(t, testCity, responseBody.Data)
 }
 
 func Test_DeleteCity(t *testing.T) {
@@ -57,6 +68,17 @@ func Test_DeleteCity(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
+
+	var responseBody struct {
+		Status string      `json:"status"`
+		Data   *model.City `json:"data"`
+	}
+
+	err = json.NewDecoder(resp.Body).Decode(&responseBody)
+
+	assert.NoError(t, err)
+	assert.Equal(t, "success", responseBody.Status)
+	assert.Equal(t, testCity, responseBody.Data)
 }
 
 func TestRegisterCity(t *testing.T) {
@@ -80,6 +102,17 @@ func TestRegisterCity(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
+
+	var responseBody struct {
+		Status bool        `json:"success"`
+		Data   *model.City `json:"data"`
+	}
+
+	err = json.NewDecoder(resp.Body).Decode(&responseBody)
+
+	assert.NoError(t, err)
+	assert.Equal(t, true, responseBody.Status)
+	assert.Equal(t, testCity, responseBody.Data)
 }
 
 func TestUpdateCity(t *testing.T) {
@@ -117,6 +150,7 @@ func TestGetAllCities(t *testing.T) {
 		{ID: "1", Name: "Sofia", Country: "Bulgaria"},
 		{ID: "2", Name: "Plovdiv", Country: "Bulgaria"},
 	}
+
 	mockCityRepo.EXPECT().GetAllCity().Return(testCities, nil)
 
 	app := fiber.New()
@@ -127,4 +161,16 @@ func TestGetAllCities(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
+
+	var responseBody struct {
+		Status string        `json:"status"`
+		Data   []*model.City `json:"data"`
+	}
+
+	err = json.NewDecoder(resp.Body).Decode(&responseBody)
+
+	assert.NoError(t, err)
+	assert.Equal(t, len(testCities), len(responseBody.Data))
+	assert.Equal(t, "success", responseBody.Status)
+	assert.Equal(t, testCities, responseBody.Data)
 }

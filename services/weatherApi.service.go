@@ -60,12 +60,13 @@ func (self *weatherApiService) GetWeatherByCity(ctx *fiber.Ctx) error {
 		})
 	}
 
-	apiKey, err := self.weatherHandler.getApiKey(self.credFile)
-
+	url, err := self.weatherHandler.GetUrlForWeatherApi(period, self.credFile, cityName, days, self.config.ForecastUrl, self.config.CurrentTimeUrl)
 	if err != nil {
-		return err
+		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{
+			"error":   err.Error(),
+			"message": "error getting weather url, missing cred file with key",
+		})
 	}
-	url := self.weatherHandler.GetUrlForWeatherApi(period, apiKey, cityName, days, self.config.ForecastUrl, self.config.CurrentTimeUrl)
 
 	res, err := self.weatherHandler.Handle(url, period)
 	if err != nil {
