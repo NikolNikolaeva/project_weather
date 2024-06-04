@@ -1,14 +1,15 @@
 package services
 
 import (
-	swagger "github.com/weatherapicom/go"
 	"io/ioutil"
 	"os"
 	"testing"
 	"time"
 
+	api "github.com/NikolNikolaeva/project_weather/generated/api/weatherapi"
+
 	"github.com/NikolNikolaeva/project_weather/generated/dao/model"
-	mocks "github.com/NikolNikolaeva/project_weather/mocks"
+	"github.com/NikolNikolaeva/project_weather/mocks"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 )
@@ -30,11 +31,11 @@ func Test_WeatherHandler_Handle_CityRegister(t *testing.T) {
 	mockForeCast := mocks.NewMockForecastRepo(controller)
 
 	mockGetter := mocks.NewMockWeatherDataGetter(controller)
-	mockGetter.EXPECT().GetData(gomock.Any()).Return(&swagger.InlineResponse2001{
-		Current: &swagger.Current{
+	mockGetter.EXPECT().GetData(gomock.Any()).Return(&api.InlineResponse2001{
+		Current: &api.Current{
 			LastUpdated: "2007-01-02 15:04",
 		},
-		Location: &swagger.Location{
+		Location: &api.Location{
 			Name:    "Sofia",
 			Country: "Bulgaria",
 			Lat:     42.098,
@@ -84,7 +85,7 @@ func Test_WeatherHandler_Handle(t *testing.T) {
 		url             string
 		period          string
 		mockCity        *model.City
-		mockWeatherData *swagger.InlineResponse2001
+		mockWeatherData *api.InlineResponse2001
 		expectedError   error
 	}{
 		{
@@ -94,8 +95,8 @@ func Test_WeatherHandler_Handle(t *testing.T) {
 			mockCity: &model.City{
 				ID: "some_id",
 			},
-			mockWeatherData: &swagger.InlineResponse2001{
-				Current: &swagger.Current{
+			mockWeatherData: &api.InlineResponse2001{
+				Current: &api.Current{
 					LastUpdated: time.Now().Format(templateDateAndTime),
 				},
 			},
@@ -108,9 +109,9 @@ func Test_WeatherHandler_Handle(t *testing.T) {
 			mockCity: &model.City{
 				ID: "some_id",
 			},
-			mockWeatherData: &swagger.InlineResponse2001{
-				Forecast: &swagger.Forecast{
-					Forecastday: []swagger.ForecastForecastday{},
+			mockWeatherData: &api.InlineResponse2001{
+				Forecast: &api.Forecast{
+					Forecastday: []api.ForecastForecastday{},
 				},
 			},
 			expectedError: nil,

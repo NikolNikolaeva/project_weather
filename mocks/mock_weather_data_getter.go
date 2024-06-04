@@ -10,8 +10,9 @@
 package mocks
 
 import (
-	swagger "github.com/weatherapicom/go"
 	reflect "reflect"
+
+	api "github.com/NikolNikolaeva/project_weather/generated/api/weatherapi"
 
 	gomock "github.com/golang/mock/gomock"
 )
@@ -22,12 +23,12 @@ type MockWeatherDataGetter struct {
 	recorder *MockWeatherDataGetterMockRecorder
 }
 
-func (m *MockWeatherDataGetter) GetCurrentData(q string, key string) (*swagger.Current, *swagger.Location, error) {
+func (m *MockWeatherDataGetter) GetCurrentData(q string, key string) (*api.Current, *api.Location, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (m *MockWeatherDataGetter) GetForecastData(q string, days int32, key string) (*swagger.Forecast, *swagger.Location, error) {
+func (m *MockWeatherDataGetter) GetForecastData(q string, days int32, key string) (*api.Forecast, *api.Location, error) {
 	//TODO implement me
 	panic("implement me")
 }
@@ -50,10 +51,10 @@ func (m *MockWeatherDataGetter) EXPECT() *MockWeatherDataGetterMockRecorder {
 }
 
 // GetData mocks base method.
-func (m *MockWeatherDataGetter) GetData(arg0 string) (*swagger.InlineResponse2001, error) {
+func (m *MockWeatherDataGetter) GetData(arg0 string) (*api.InlineResponse2001, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetData", arg0)
-	ret0, _ := ret[0].(*swagger.InlineResponse2001)
+	ret0, _ := ret[0].(*api.InlineResponse2001)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

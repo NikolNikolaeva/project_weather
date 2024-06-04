@@ -1,0 +1,69 @@
+#!/bin/bash
+
+source "$(dirname "${0}")/commons.lib"
+
+readonly PROJECT_PATH="$(realpath "$(dirname "${0}")/../..")"
+readonly PROJECT_NAME="$(basename "${PROJECT_PATH}")"
+
+readonly OPENAPI_VERSION="7.6.0"
+readonly OPENAPI_DOCKER_IMAGE="openapitools/openapi-generator-cli:v${OPENAPI_VERSION}"
+readonly OPENAPI_JAR_DOWNLOAD_PATH="/var/tmp/openapi-generator-cli.${OPENAPI_VERSION}.jar"
+readonly OPENAPI_JAR_DOWNLOAD_URL="https://repo1.maven.org/maven2/org/openapitools/openapi-generator-cli/${OPENAPI_VERSION}/openapi-generator-cli-${OPENAPI_VERSION}.jar"
+
+function generate() {
+  local project_path="${1}"; shift
+
+  _ensure_installed "java" "java" "default-jre"
+  _download_file "${OPENAPI_JAR_DOWNLOAD_URL}" "${OPENAPI_JAR_DOWNLOAD_PATH}"
+  java -jar "${OPENAPI_JAR_DOWNLOAD_PATH}" batch --clean --fail-fast --root-dir "${project_path}" -- "${@}"
+}
+
+function generate_db_daos() {
+    _assert_success "${PROJECT_PATH}/generated" rm -rf "dao"
+    _assert_success "${PROJECT_PATH}" go run resources/tools/gorm/main.go
+}
+
+function generate_gomocks() {
+  _assert_success "${PROJECT_PATH}" rm -rf "generated/go-mocks"
+  _assert_success "${PROJECT_PATH}" go install -mod=mod go.uber.org/mock/mockgen
+  _assert_success "${PROJECT_PATH}" go generate ./...
+}
+
+function generate_api_server() {
+  local target_path="${PROJECT_PATH}/generated/rest"
+  local files_to_prune=("../api" "docs" "../README.md" "../.openapi-generator" "../.openapi-generator-ignore")
+
+  _assert_success "${target_path}" rm -rf ./*
+  _assert_success "${PROJECT_PATH}" "generate" "${PROJECT_PATH}" "resources/tools/openapi/generate-client-api.yaml"
+  _assert_success "${target_path}" goimports -w "."
+  _assert_success "${target_path}" rm -rf "${files_to_prune[@]}"
+}
+
+function generate_api_client() {
+  local wrong_import="github.com/GIT_USER_ID/GIT_REPO_ID"
+  local target_path="${PROJECT_PATH}/it/testbed/generated/client"
+  local right_import="github.com/6RiverSystems/jigsaw/it/testbed/generated/client"
+  local files_to_prune=("api" "docs" "test" "go.mod" "go.sum" "README.md" ".travis.yml" ".gitignore" "git_push.sh" ".openapi-generator" ".openapi-generator-ignore")
+
+  _assert_success "${target_path}" rm -rf ./*
+  _assert_success "${PROJECT_PATH}" "generate" "${PROJECT_PATH}" "resources/tools/openapi/generate-test-client.yaml"
+  _assert_success "${target_path}" goimports -w "."
+  _assert_success "${target_path}" rm -rf "${files_to_prune[@]}"
+  _assert_success "${target_path}" gofmt -w -r "\"${wrong_import}\" -> \"${right_import}\"" "."
+}
+
+function main() {
+  local run_all="$(_read_cmd_flag "run-all" "true" "${@}")"
+  local generate_resources="$(_read_cmd_flag "generate" "${run_all}" "${@}")"
+
+  if _is_truthy "${generate_resources}"; then
+    _info "Generating resources for project '${PROJECT_NAME}'..."
+
+    generate_gomocks
+    generate_db_daos
+    generate_api_server
+    generate_api_client
+  fi
+}
+
+main "${@}"

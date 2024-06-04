@@ -1,9 +1,10 @@
 package services
 
 import (
+	"net/http"
+
 	"github.com/NikolNikolaeva/project_weather/config"
 	"github.com/NikolNikolaeva/project_weather/controllers"
-	"net/http"
 
 	"github.com/gofiber/fiber/v2"
 )

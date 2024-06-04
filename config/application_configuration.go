@@ -1,10 +1,11 @@
 package config
 
 import (
-	"github.com/lpernett/godotenv"
 	"time"
+
+	"github.com/kelseyhightower/envconfig"
+	"github.com/lpernett/godotenv"
 )
-import "github.com/kelseyhightower/envconfig"
 
 func NewApplicationConfiguration(envfile string) (*ApplicationConfiguration, error) {
 	if envfile != "" {

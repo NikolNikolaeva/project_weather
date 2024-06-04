@@ -3,12 +3,14 @@ package services
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/NikolNikolaeva/project_weather/generated/dao/model"
-	"github.com/NikolNikolaeva/project_weather/repositories"
-	swagger "github.com/weatherapicom/go"
+
 	"io/ioutil"
 	"os"
 	"time"
+
+	api "github.com/NikolNikolaeva/project_weather/generated/api/weatherapi"
+	"github.com/NikolNikolaeva/project_weather/generated/dao/model"
+	"github.com/NikolNikolaeva/project_weather/repositories"
 )
 
 const (
@@ -21,8 +23,8 @@ type Cred struct {
 }
 
 type WeatherHandler interface {
-	HandleCurrantData(q string, cred string) (*swagger.Current, error)
-	HandleForecast(q string, days int32, cred string) (*swagger.Forecast, error)
+	HandleCurrantData(q string, cred string) (*api.Current, error)
+	HandleForecast(q string, days int32, cred string) (*api.Forecast, error)
 }
 
 type weatherHandler struct {
@@ -60,7 +62,7 @@ func (self *weatherHandler) getApiKey(credFile string) (string, error) {
 	return cred.ApiKey, nil
 }
 
-func (self *weatherHandler) HandleCurrantData(q string, cred string) (*swagger.Current, error) {
+func (self *weatherHandler) HandleCurrantData(q string, cred string) (*api.Current, error) {
 	key, err := self.getApiKey(cred)
 	if err != nil {
 		return nil, err
@@ -87,7 +89,7 @@ func (self *weatherHandler) HandleCurrantData(q string, cred string) (*swagger.C
 	return output, nil
 }
 
-func (self *weatherHandler) HandleForecast(q string, days int32, cred string) (*swagger.Forecast, error) {
+func (self *weatherHandler) HandleForecast(q string, days int32, cred string) (*api.Forecast, error) {
 	key, err := self.getApiKey(cred)
 	if err != nil {
 		return nil, err
@@ -133,9 +135,9 @@ func (self *weatherHandler) HandleForecast(q string, days int32, cred string) (*
 	return forecast, nil
 }
 
-func (self *weatherHandler) formCurrentData(current *swagger.Current) *swagger.Current {
+func (self *weatherHandler) formCurrentData(current *api.Current) *api.Current {
 
-	var outputData *swagger.Current
+	var outputData *api.Current
 
 	outputData.TempC = current.TempC
 	outputData.Condition = current.Condition
@@ -146,9 +148,9 @@ func (self *weatherHandler) formCurrentData(current *swagger.Current) *swagger.C
 	return outputData
 }
 
-//func (self *weatherHandler) formForecastData(current *swagger.Forecast) *swagger.Current {
+// func (self *weatherHandler) formForecastData(current *api.Forecast) *api.Current {
 //
-//	var outputData *swagger.Fo
+//	var outputData *api.Fo
 //
 //	outputData.TempC = current.TempC
 //	outputData.Condition = current.Condition
@@ -157,4 +159,4 @@ func (self *weatherHandler) formCurrentData(current *swagger.Current) *swagger.C
 //	outputData.IsDay = current.IsDay
 //
 //	return outputData
-//}
+// }

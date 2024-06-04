@@ -3,28 +3,29 @@ package services
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/NikolNikolaeva/project_weather/mocks"
-	"github.com/golang/mock/gomock"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
+	"github.com/NikolNikolaeva/project_weather/mocks"
+	"github.com/golang/mock/gomock"
+
+	api "github.com/NikolNikolaeva/project_weather/generated/api/weatherapi"
 	"github.com/stretchr/testify/assert"
-	swagger "github.com/weatherapicom/go"
 )
 
 func TestWeatherDataGetter_GetCurrentData(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		response := &swagger.InlineResponse2001{
-			Location: &swagger.Location{
+		response := &api.InlineResponse2001{
+			Location: &api.Location{
 				Name:    "Sofia",
 				Country: "Bulgaria",
 				Lat:     42.698,
 				Lon:     23.322,
 			},
-			Current: &swagger.Current{
+			Current: &api.Current{
 				TempC: 15.0,
-				Condition: &swagger.CurrentCondition{
+				Condition: &api.CurrentCondition{
 					Text: "Sunny",
 				},
 			},

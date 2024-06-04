@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"net/http"
 
-	swagger "github.com/weatherapicom/go"
+	api "github.com/NikolNikolaeva/project_weather/generated/api/weatherapi"
 )
 
 type WeatherDataGetter interface {
-	GetCurrentData(q string, key string) (*swagger.Current, *swagger.Location, error)
-	GetForecastData(q string, days int32, key string) (*swagger.Forecast, *swagger.Location, error)
+	GetCurrentData(q string, key string) (*api.Current, *api.Location, error)
+	GetForecastData(q string, days int32, key string) (*api.Forecast, *api.Location, error)
 }
 
 type weatherDataGetter struct {
@@ -23,14 +23,14 @@ func NewWeatherDataGetter(client *http.Client) WeatherDataGetter {
 	}
 }
 
-func (self *weatherDataGetter) GetCurrentData(q string, key string) (*swagger.Current, *swagger.Location, error) {
+func (self *weatherDataGetter) GetCurrentData(q string, key string) (*api.Current, *api.Location, error) {
 
-	config := swagger.NewConfiguration()
-	api := swagger.NewAPIClient(config)
+	config := api.NewConfiguration()
+	client := api.NewAPIClient(config)
 
-	ctx := context.WithValue(context.Background(), swagger.ContextAPIKey, swagger.APIKey{Key: key})
+	ctx := context.WithValue(context.Background(), api.ContextAPIKey, api.APIKey{Key: key})
 
-	weather, resp, err := api.APIsApi.RealtimeWeather(ctx, q, nil)
+	weather, resp, err := client.APIsApi.RealtimeWeather(ctx, q, nil)
 
 	if err != nil {
 		return nil, nil, err
@@ -43,14 +43,14 @@ func (self *weatherDataGetter) GetCurrentData(q string, key string) (*swagger.Cu
 	return weather.Current, weather.Location, nil
 }
 
-func (self *weatherDataGetter) GetForecastData(q string, days int32, key string) (*swagger.Forecast, *swagger.Location, error) {
+func (self *weatherDataGetter) GetForecastData(q string, days int32, key string) (*api.Forecast, *api.Location, error) {
 
-	config := swagger.NewConfiguration()
-	api := swagger.NewAPIClient(config)
+	config := api.NewConfiguration()
+	client := api.NewAPIClient(config)
 
-	ctx := context.WithValue(context.Background(), swagger.ContextAPIKey, swagger.APIKey{Key: key})
+	ctx := context.WithValue(context.Background(), api.ContextAPIKey, api.APIKey{Key: key})
 
-	weather, resp, err := api.APIsApi.ForecastWeather(ctx, q, days, nil)
+	weather, resp, err := client.APIsApi.ForecastWeather(ctx, q, days, nil)
 
 	if err != nil {
 		return nil, nil, err

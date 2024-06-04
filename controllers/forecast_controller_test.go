@@ -2,14 +2,15 @@ package controllers
 
 import (
 	"encoding/json"
-	"github.com/NikolNikolaeva/project_weather/mocks"
-	"github.com/gofiber/fiber/v2"
-	"github.com/golang/mock/gomock"
-	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
+
+	"github.com/NikolNikolaeva/project_weather/mocks"
+	"github.com/gofiber/fiber/v2"
+	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/assert"
 
 	"github.com/NikolNikolaeva/project_weather/generated/dao/model"
 )
