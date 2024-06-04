@@ -1,0 +1,35 @@
+run:
+  timeout: "100s"
+
+issues:
+  exclude-dirs:
+    - "generated/*"
+  exclude-files:
+    - ".*_test.go"
+    - "mock_.*.go"
+
+linters:
+  enable:
+    - goimports
+    - revive
+    - errcheck
+    - ineffassign
+    - typecheck
+    - unconvert
+    - exportloopref
+    - dupl
+    - misspell
+    - govet
+    - staticcheck
+    - unused
+    - gosimple
+  disable-all: true
+
+linters-settings:
+  goimports:
+    local-prefixes: github.com/NikolNikolaeva
+  revive:
+    enableAllRules: true
+    rules:
+      - name: receiver-naming
+        disabled: true

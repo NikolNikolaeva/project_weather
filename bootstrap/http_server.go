@@ -6,15 +6,14 @@ import (
 	"net/http"
 	"slices"
 
+	"github.com/gofiber/fiber/v2"
+	"go.uber.org/fx"
+
 	"github.com/NikolNikolaeva/project_weather/config"
 	"github.com/NikolNikolaeva/project_weather/controllers"
-	_ "github.com/NikolNikolaeva/project_weather/docs"
 	"github.com/NikolNikolaeva/project_weather/generated/dao"
 	"github.com/NikolNikolaeva/project_weather/repositories"
 	"github.com/NikolNikolaeva/project_weather/services"
-	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/swagger"
-	"go.uber.org/fx"
 )
 
 var FXModule_HTTPServer = fx.Module(
@@ -34,7 +33,6 @@ var FXModule_HTTPServer = fx.Module(
 	fx.Invoke(
 		configureAPIRoutes,
 		registerServerStartHook,
-		GetSwagger,
 	),
 )
 
@@ -79,7 +77,6 @@ func createCityController(db repositories.CityRepo) controllers.CityController {
 }
 
 func createWeatherApiService(weatherHandler services.WeatherHandler, config *config.ApplicationConfiguration) services.WeatherApiService {
-
 	return services.NewWeatherService(weatherHandler, config, config.CredFile)
 }
 
@@ -108,8 +105,4 @@ func registerServerStartHook(lc fx.Lifecycle, app *fiber.App, config *config.App
 			log.Println("Server stopped successfully")
 		},
 	))
-}
-
-func GetSwagger(app *fiber.App) {
-	app.Get("/swagger/*", swagger.HandlerDefault)
 }

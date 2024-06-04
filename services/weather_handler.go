@@ -3,8 +3,8 @@ package services
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 
-	"io/ioutil"
 	"os"
 	"time"
 
@@ -46,15 +46,15 @@ func (self *weatherHandler) getApiKey(credFile string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	defer jsonFile.Close()
+	defer func() { _ = jsonFile.Close() }()
 
-	byteValue, err := ioutil.ReadAll(jsonFile)
+	byteValue, err := io.ReadAll(jsonFile)
 	if err != nil {
 		return "", err
 	}
 
 	var cred Cred = Cred{}
-	json.Unmarshal(byteValue, &cred)
+	err = json.Unmarshal(byteValue, &cred)
 
 	if err != nil {
 		return "", err

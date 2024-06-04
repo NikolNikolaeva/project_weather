@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/NikolNikolaeva/project_weather/config"
-	"github.com/NikolNikolaeva/project_weather/generated/dao"
 	embeddedpostgres "github.com/fergusstrange/embedded-postgres"
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database"
@@ -16,6 +14,9 @@ import (
 	"go.uber.org/fx"
 	gorm_postgres "gorm.io/driver/postgres"
 	"gorm.io/gorm"
+
+	"github.com/NikolNikolaeva/project_weather/config"
+	"github.com/NikolNikolaeva/project_weather/generated/dao"
 )
 
 var FXModule_Persistence = fx.Module(

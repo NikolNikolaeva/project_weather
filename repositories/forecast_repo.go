@@ -3,9 +3,10 @@ package repositories
 import (
 	"errors"
 
+	"gorm.io/gorm"
+
 	"github.com/NikolNikolaeva/project_weather/generated/dao"
 	"github.com/NikolNikolaeva/project_weather/generated/dao/model"
-	"gorm.io/gorm"
 )
 
 //go:generate mockgen --build_flags=--mod=mod -destination ../generated/go-mocks/repositories/mock_forecast_repo.go . ForecastRepo
