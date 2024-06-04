@@ -13,13 +13,7 @@ Retrieve weather forecasts for a registered city by hour, day, or week.
 
 DB: PostgreSQL
 
-## Generate repositories mocks:
+## Generate DB DAOs, API DTOs & mocks:
 
-    1. cd ./repositories
-    2. `mockgen --build_flags=--mod=mod -package repositories -destination ./../mocks/mock_city_repo.go . CityDB`
-    3. mockgen --build_flags=--mod=mod -package repositories -destination ./../mocks/mock_forecast_repo.go . ForecastDB
+    Invoke './resources/tools/generate'
 
-## Generate services mocks:
-
-    1. cd ./services
-    2. `mockgen --build_flags=--mod=mod -package repositories -destination ./../mocks/mock_city_repo.go . WeatherDataGetter`

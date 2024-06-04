@@ -9,8 +9,8 @@ import (
 	api "github.com/NikolNikolaeva/project_weather/generated/api/weatherapi"
 
 	"github.com/NikolNikolaeva/project_weather/generated/dao/model"
-	"github.com/NikolNikolaeva/project_weather/generated/go-mocks/repositories"
-	"github.com/NikolNikolaeva/project_weather/generated/go-mocks/services"
+	mock_repositories "github.com/NikolNikolaeva/project_weather/generated/go-mocks/repositories"
+	mock_services "github.com/NikolNikolaeva/project_weather/generated/go-mocks/services"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 )
