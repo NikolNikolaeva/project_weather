@@ -85,7 +85,7 @@ func (r *cityController) GetCityById(ctx *fiber.Ctx) error {
 		_ = ctx.Status(http.StatusInternalServerError).JSON(&fiber.Map{
 			"status": "error",
 		})
-		log.Printf(err.Error())
+		log.Print(err.Error())
 		return err
 	}
 	_ = ctx.Status(http.StatusOK).JSON(&fiber.Map{

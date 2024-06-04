@@ -1,8 +1,9 @@
 package main
 
 import (
-	"github.com/NikolNikolaeva/project_weather/bootstrap"
 	"go.uber.org/fx"
+
+	"github.com/NikolNikolaeva/project_weather/bootstrap"
 )
 
 //	@title			Weather API
