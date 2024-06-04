@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"encoding/json"
+	"github.com/NikolNikolaeva/project_weather/mocks"
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
@@ -11,14 +12,13 @@ import (
 	"testing"
 
 	"github.com/NikolNikolaeva/project_weather/generated/dao/model"
-	"github.com/NikolNikolaeva/project_weather/mocks"
 )
 
 func TestCreateForecast(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockForecastRepo := repositories.NewMockForecastRepo(ctrl)
+	mockForecastRepo := mocks.NewMockForecastRepo(ctrl)
 	controller := NewForecastController(mockForecastRepo)
 
 	mockForecastRepo.EXPECT().Create(gomock.Any()).Return(nil)
@@ -40,7 +40,7 @@ func TestGetAllForecasts(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockForecastRepo := repositories.NewMockForecastRepo(ctrl)
+	mockForecastRepo := mocks.NewMockForecastRepo(ctrl)
 	controller := NewForecastController(mockForecastRepo)
 
 	testForecasts := []*model.Forecast{
@@ -64,7 +64,7 @@ func TestGetForecastByID(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockForecastRepo := repositories.NewMockForecastRepo(ctrl)
+	mockForecastRepo := mocks.NewMockForecastRepo(ctrl)
 	controller := NewForecastController(mockForecastRepo)
 
 	testID := "1"
@@ -95,7 +95,7 @@ func TestUpdateForecast(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockForecastRepo := repositories.NewMockForecastRepo(ctrl)
+	mockForecastRepo := mocks.NewMockForecastRepo(ctrl)
 	controller := NewForecastController(mockForecastRepo)
 
 	testID := "1"
@@ -128,7 +128,7 @@ func TestDeleteForecast(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockForecastRepo := repositories.NewMockForecastRepo(ctrl)
+	mockForecastRepo := mocks.NewMockForecastRepo(ctrl)
 	controller := NewForecastController(mockForecastRepo)
 
 	testID := "1"

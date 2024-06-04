@@ -49,6 +49,17 @@ func (self *weatherApiService) GetRoutes() []controllers.Route {
 	}
 }
 
+// GetWeatherByCity Get weather data
+//
+//	@Summary		Get weather data
+//	@Description	Get weather data details
+//	@Tags			Weather
+//	@Accept			json
+//	@Produce		json
+//	@Param			city	path		string	true	"weather search by a city"
+//	@Param			period	path		string	true	"weather search by a period"
+//	@Success		200		{string}	string
+//	@Router			/weather/{city}/{period} [get]
 func (self *weatherApiService) GetWeatherByCity(ctx *fiber.Ctx) error {
 	cityName := ctx.Params("city")
 	period := ctx.Params("period")
@@ -60,18 +71,25 @@ func (self *weatherApiService) GetWeatherByCity(ctx *fiber.Ctx) error {
 		})
 	}
 
-	url, err := self.weatherHandler.GetUrlForWeatherApi(period, self.credFile, cityName, days, self.config.ForecastUrl, self.config.CurrentTimeUrl)
-	if err != nil {
-		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{
-			"error":   err.Error(),
-			"message": "error getting weather url, missing cred file with key",
+	if period == "current" {
+		current, err := self.weatherHandler.HandleCurrantData(cityName, self.credFile)
+		if err != nil {
+			return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{
+				"error": err.Error(),
+			})
+		}
+		return ctx.Status(http.StatusOK).JSON(fiber.Map{
+			"data": current,
+		})
+	} else {
+		forecast, err := self.weatherHandler.HandleForecast(cityName, int32(days), self.credFile)
+		if err != nil {
+			return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{
+				"error": err.Error(),
+			})
+		}
+		return ctx.Status(http.StatusOK).JSON(fiber.Map{
+			"data": forecast,
 		})
 	}
-
-	res, err := self.weatherHandler.Handle(url, period)
-	if err != nil {
-		ctx.Status(http.StatusInternalServerError)
-	}
-
-	return ctx.Status(http.StatusOK).JSON(res)
 }

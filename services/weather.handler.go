@@ -3,13 +3,12 @@ package services
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/NikolNikolaeva/project_weather/generated/dao/model"
+	"github.com/NikolNikolaeva/project_weather/repositories"
+	swagger "github.com/weatherapicom/go"
 	"io/ioutil"
 	"os"
 	"time"
-
-	"github.com/NikolNikolaeva/project_weather/generated/dao/model"
-	"github.com/NikolNikolaeva/project_weather/repositories"
-	"github.com/NikolNikolaeva/project_weather/resources/swagger"
 )
 
 const (
@@ -22,8 +21,8 @@ type Cred struct {
 }
 
 type WeatherHandler interface {
-	Handle(url, period string) ([]swagger.ForecastDTO, error)
-	GetUrlForWeatherApi(period string, apiKey string, city string, days int, ForecastUrl string, CurrentTimeUrl string) (string, error)
+	HandleCurrantData(q string, cred string) (*swagger.Current, error)
+	HandleForecast(q string, days int32, cred string) (*swagger.Forecast, error)
 }
 
 type weatherHandler struct {
@@ -61,74 +60,67 @@ func (self *weatherHandler) getApiKey(credFile string) (string, error) {
 	return cred.ApiKey, nil
 }
 
-func (self *weatherHandler) GetUrlForWeatherApi(period string, credFile string, city string, days int, ForecastUrl string, CurrentTimeUrl string) (string, error) {
-
-	apiKey, err := self.getApiKey(credFile)
+func (self *weatherHandler) HandleCurrantData(q string, cred string) (*swagger.Current, error) {
+	key, err := self.getApiKey(cred)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	if period == "current" {
-		return fmt.Sprintf(CurrentTimeUrl, apiKey, city), nil
-	} else {
-		return fmt.Sprintf(ForecastUrl, apiKey, city, days), nil
-	}
-}
-
-func (self *weatherHandler) Handle(url, period string) ([]swagger.ForecastDTO, error) {
-	weatherData, err := self.weatherDataGetter.GetData(url)
+	currentData, location, err := self.weatherDataGetter.GetCurrentData(q, key)
 	if err != nil {
 		return nil, err
 	}
 
 	city := &model.City{
-		Name:      weatherData.Location.Name,
-		Country:   weatherData.Location.Country,
-		Latitude:  fmt.Sprintf("%f", weatherData.Location.Lat),
-		Longitude: fmt.Sprintf("%f", weatherData.Location.Lon),
+		Name:      location.Name,
+		Country:   location.Country,
+		Latitude:  fmt.Sprintf("%f", location.Lat),
+		Longitude: fmt.Sprintf("%f", location.Lon),
+	}
+
+	_, err = self.cityRepo.RegisterCity(city)
+
+	if err != nil {
+		return nil, err
+	}
+
+	output := self.formCurrentData(currentData)
+	return output, nil
+}
+
+func (self *weatherHandler) HandleForecast(q string, days int32, cred string) (*swagger.Forecast, error) {
+	key, err := self.getApiKey(cred)
+	if err != nil {
+		return nil, err
+	}
+	forecast, location, err := self.weatherDataGetter.GetForecastData(q, days, key)
+	if err != nil {
+		return nil, err
+	}
+
+	city := &model.City{
+		Name:      location.Name,
+		Country:   location.Country,
+		Latitude:  fmt.Sprintf("%f", location.Lat),
+		Longitude: fmt.Sprintf("%f", location.Lon),
 	}
 
 	city, err = self.cityRepo.RegisterCity(city)
+
 	if err != nil {
 		return nil, err
 	}
 
-	if period == "current" {
-		currentWeather, err := self.formatWeatherCurrentData(weatherData, city.ID)
-		if err != nil {
-			return nil, err
-		}
-
-		return []swagger.ForecastDTO{currentWeather}, nil
-	}
-
-	forecast, err := self.formatWeatherForecastData(weatherData, city.ID)
-	if err != nil {
-		return nil, err
-	}
-
-	return forecast, nil
-}
-
-func (self *weatherHandler) formatWeatherForecastData(weatherData *swagger.WeatherDTO, cityID string) ([]swagger.ForecastDTO, error) {
-	// Format forecast weather data
-	var forecasts []swagger.ForecastDTO
-	for _, day := range weatherData.Forecast.ForecastDays {
+	for _, day := range forecast.Forecastday {
 		date, err := time.Parse(templateDate, day.Date)
 
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse forecast date: %v", err)
 		}
-		forecast := swagger.ForecastDTO{
-			CityID:       cityID,
-			ForecastDate: date,
-			Temperature:  fmt.Sprintf("%.1f", day.Day.AvgTempC),
-			Condition:    day.Day.Condition.Text,
-		}
 
 		forecastToSave := &model.Forecast{
-			CityID:       cityID,
+			CityID:       city.ID,
 			ForecastDate: date,
-			Temperature:  fmt.Sprintf("%.1f", day.Day.AvgTempC),
+			Temperature:  fmt.Sprintf("%.1f", day.Day.AvgtempC),
 			Condition:    day.Day.Condition.Text,
 		}
 		err = self.forecastRepo.Create(forecastToSave)
@@ -136,26 +128,33 @@ func (self *weatherHandler) formatWeatherForecastData(weatherData *swagger.Weath
 			return nil, err
 		}
 
-		forecasts = append(forecasts, forecast)
 	}
 
-	return forecasts, nil
+	return forecast, nil
 }
 
-func (self *weatherHandler) formatWeatherCurrentData(weatherData *swagger.WeatherDTO, cityID string) (swagger.ForecastDTO, error) {
-	// Format current weather data
-	lastUpdated, err := time.Parse(templateDateAndTime, weatherData.Current.LastUpdated)
-	fmt.Println(lastUpdated)
-	if err != nil {
-		return swagger.ForecastDTO{}, err
-	}
+func (self *weatherHandler) formCurrentData(current *swagger.Current) *swagger.Current {
 
-	currentData := swagger.ForecastDTO{
-		CityID:       cityID,
-		ForecastDate: lastUpdated,
-		Temperature:  fmt.Sprintf("%.1f", weatherData.Current.TempC),
-		Condition:    weatherData.Current.Condition.Text,
-	}
+	var outputData *swagger.Current
 
-	return currentData, nil
+	outputData.TempC = current.TempC
+	outputData.Condition = current.Condition
+	outputData.LastUpdated = current.LastUpdated
+	outputData.Cloud = current.Cloud
+	outputData.IsDay = current.IsDay
+
+	return outputData
 }
+
+//func (self *weatherHandler) formForecastData(current *swagger.Forecast) *swagger.Current {
+//
+//	var outputData *swagger.Fo
+//
+//	outputData.TempC = current.TempC
+//	outputData.Condition = current.Condition
+//	outputData.LastUpdated = current.LastUpdated
+//	outputData.Cloud = current.Cloud
+//	outputData.IsDay = current.IsDay
+//
+//	return outputData
+//}

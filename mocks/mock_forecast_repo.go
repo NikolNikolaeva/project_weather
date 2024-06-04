@@ -7,7 +7,7 @@
 //
 
 // Package repositories is a generated GoMock package.
-package repositories
+package mocks
 
 import (
 	reflect "reflect"

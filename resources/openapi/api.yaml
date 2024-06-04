@@ -1,8 +1,811 @@
-openapi: " 3.1.0"
+openapi: " 1.0.0"
 info:
-  titel: "API"
+  title: "Weather API"
   version: "1.0.0"
 servers:
-  - url: "http://localhost:8080"
+  - url: ""
 paths:
+  /cities:
+    get:
+      description: "Return all registered cities"
+      tags:
+        -city
+      operationalId: GetAllCities
+      parameters:
+        -name: id
+        in: path
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Success.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/City"
+        "400":
+          description: Malformed or invalid payload.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                key: "BAD_REQUEST"
+                description: "Request payload is either missing or invalid"
+        "4XX":
+          description: Client error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                key: "BAD_REQUEST"
+                description: "Request payload is either missing or invalid"
+        "5XX":
+          description: Server error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                key: "INTERNAL_SERVER_ERROR"
+                description: "An unexpected server error occurred"
+    post:
+      description: "Register a city"
+      tags:
+        -city
+      operationId: RegisterCity
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/City"
+      responses:
+        "200":
+          description: Success.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/City"
+        "400":
+          description: Malformed or invalid payload.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                key: "BAD_REQUEST"
+                description: "Request payload is either missing or invalid"
+        "4XX":
+          description: Client error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                key: "BAD_REQUEST"
+                description: "Request payload is either missing or invalid"
+        "5XX":
+          description: Server error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                key: "INTERNAL_SERVER_ERROR"
+                description: "An unexpected server error occurred"
 
+  /cities/{id}:
+    get:
+      description: "Returns a specific city by id"
+      tags:
+        -city
+      operationId: GetCityById
+      parameters:
+        -name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Success.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/City"
+        "400":
+          description: Malformed or invalid payload.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                key: "BAD_REQUEST"
+                description: "Request payload is either missing or invalid"
+        "410":
+          description: City not found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                key: "NOT_FOUND"
+                description: "The resource you requested cannot be found"
+        "4XX":
+          description: Client error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                key: "BAD_REQUEST"
+                description: "Request payload is either missing or invalid"
+        "5XX":
+          description: Server error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                key: "INTERNAL_SERVER_ERROR"
+                description: "An unexpected server error occurred"
+    put:
+      description: "Updates a specific city based on its id"
+      tags:
+        -city
+      operationId: UpdateCityById
+      parameters:
+        -name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/City"
+      responses:
+        "200":
+          description: Success.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/City"
+        "400":
+          description: Malformed or invalid payload.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                key: "BAD_REQUEST"
+                description: "Request payload is either missing or invalid"
+        "410":
+          description: City not found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                key: "NOT_FOUND"
+                description: "The resource you requested cannot be found"
+        "4XX":
+          description: Client error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                key: "BAD_REQUEST"
+                description: "Request payload is either missing or invalid"
+        "5XX":
+          description: Server error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                key: "INTERNAL_SERVER_ERROR"
+                description: "An unexpected server error occurred"
+    delete:
+      description: "Deletes a specific binary based on its name (returns success even if not existing)"
+      tags:
+        -city
+      operationId: DeleteCityById
+      parameters:
+        -name: id
+        in: path
+      required: true
+      schema:
+        type: string
+      responses:
+        "204":
+          description: Success.
+        "400":
+          description: Malformed or invalid payload.
+          content:
+            application/json:
+              schema:
+              $ref: "#/components/schemas/Error"
+            example:
+              key: "BAD_REQUEST"
+              description: "Request payload is either missing or invalid"
+        "4XX":
+          description: Client error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                key: "BAD_REQUEST"
+                description: "Request payload is either missing or invalid"
+        "5XX":
+          description: Server error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                key: "INTERNAL_SERVER_ERROR"
+                description: "An unexpected server error occurred"
+
+  /forecasts:
+    get:
+      description: "Return all registered forecasts"
+      tags:
+        -forecast
+      operationalId: GetAllForecasts
+      parameters:
+        -name: page
+        in: query
+        schema:
+          type: integer
+          format: int64
+          minimum: 1
+          default: 1
+      -name: limit
+      in: query
+      schema:
+        type: integer
+        format: int64
+        minimum: 1
+        maximum: 200
+        default: 20
+      responses:
+        "200":
+          description: Success.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                  - page
+                properties:
+                  page:
+                    $ref: "#/components/schemas/Page"
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Forecast"
+        "400":
+          description: Malformed or invalid payload.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                key: "BAD_REQUEST"
+                description: "Request payload is either missing or invalid"
+        "4XX":
+          description: Client error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                key: "BAD_REQUEST"
+                description: "Request payload is either missing or invalid"
+        "5XX":
+          description: Server error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                key: "INTERNAL_SERVER_ERROR"
+                description: "An unexpected server error occurred"
+    post:
+      description: "Register a Forecast"
+      tags:
+        -forecast
+      operationId: CreateForecast
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Forecast"
+      responses:
+        "200":
+          description: Success.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Forecast"
+        "400":
+          description: Malformed or invalid payload.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                key: "BAD_REQUEST"
+                description: "Request payload is either missing or invalid"
+        "4XX":
+          description: Client error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                key: "BAD_REQUEST"
+                description: "Request payload is either missing or invalid"
+        "5XX":
+          description: Server error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                key: "INTERNAL_SERVER_ERROR"
+                description: "An unexpected server error occurred"
+
+  /forecasts/{id}:
+    get:
+      description: "Returns a specific forecast by id"
+      tags:
+        -city
+      operationId: GetForecastById
+      parameters:
+        -name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Success.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Forecast"
+        "400":
+          description: Malformed or invalid payload.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                key: "BAD_REQUEST"
+                description: "Request payload is either missing or invalid"
+        "410":
+          description: Forecast not found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                key: "NOT_FOUND"
+                description: "The resource you requested cannot be found"
+        "4XX":
+          description: Client error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                key: "BAD_REQUEST"
+                description: "Request payload is either missing or invalid"
+        "5XX":
+          description: Server error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                key: "INTERNAL_SERVER_ERROR"
+                description: "An unexpected server error occurred"
+    put:
+      description: "Updates a specific Forecast based on its id"
+      tags:
+        -forecast
+      operationId: UpdateForecast
+      parameters:
+        -name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Forecast"
+      responses:
+        "200":
+          description: Success.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Forecast"
+        "400":
+          description: Malformed or invalid payload.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                key: "BAD_REQUEST"
+                description: "Request payload is either missing or invalid"
+        "410":
+          description: City not found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                key: "NOT_FOUND"
+                description: "The resource you requested cannot be found"
+        "4XX":
+          description: Client error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                key: "BAD_REQUEST"
+                description: "Request payload is either missing or invalid"
+        "5XX":
+          description: Server error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                key: "INTERNAL_SERVER_ERROR"
+                description: "An unexpected server error occurred"
+    delete:
+      description: "Deletes a specific binary based on its name (returns success even if not existing)"
+      tags:
+        -city
+      operationId: DeleteCityById
+      parameters:
+        -id: name
+        in: path
+      required: true
+      schema:
+        type: string
+      responses:
+        "204":
+          description: Success.
+        "400":
+          description: Malformed or invalid payload.
+          content:
+            application/json:
+              schema:
+              $ref: "#/components/schemas/Error"
+            example:
+              key: "BAD_REQUEST"
+              description: "Request payload is either missing or invalid"
+        "4XX":
+          description: Client error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                key: "BAD_REQUEST"
+                description: "Request payload is either missing or invalid"
+        "5XX":
+          description: Server error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                key: "INTERNAL_SERVER_ERROR"
+                description: "An unexpected server error occurred"
+
+  /weather/{city}/{period}:
+    get:
+      description: "Returns a specific binary based on its name"
+      tags:
+        -weather
+      operationId: GetWeatherByCity
+      parameters:
+        - name: city
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: period
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Success.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Weather"
+        "400":
+          description: Malformed or invalid payload.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                key: "BAD_REQUEST"
+                description: "Request payload is either missing or invalid"
+        "410":
+          description: Weather not found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                key: "NOT_FOUND"
+                description: "The resource you requested cannot be found"
+        "4XX":
+          description: Client error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                key: "BAD_REQUEST"
+                description: "Request payload is either missing or invalid"
+        "5XX":
+          description: Server error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                key: "INTERNAL_SERVER_ERROR"
+                description: "An unexpected server error occurred"
+
+components:
+  securitySchemes:
+    CookieAuth:
+      type: apiKey
+      in: cookie
+      name: weatherApi
+  schemas:
+    City:
+      type: object
+      required:
+        - name
+        - country
+        - longitude
+        - latitude
+      properties:
+        id:
+          type: string
+          example: "922613c8-60ce-42f4-9823-a0ee9df38828"
+        name:
+          type: string
+          example: "default_v4"
+        country:
+          type: string
+        longitude:
+          type: string
+          example: "12.089"
+        latitude:
+          type: string
+          example: "12.089"
+        createdAt:
+          type: integer
+          readOnly: true
+          format: int64
+          example: 1694554228
+        updatedAt:
+          type: integer
+          readOnly: true
+          format: int64
+          example: 1694557228
+    Forecast:
+      type: object
+      required:
+        - cityId
+        - forecastDate
+        - temperature
+        - condition
+      properties:
+        id:
+          type: string
+          example: "882613c8-60ce-42f4-9823-a0ee9df38828"
+        cityId:
+          type: string
+          example: "922613c8-60ce-42f4-9823-a0ee9df38828"
+        forecastDate:
+          type: time
+        temperature:
+          type: string
+          example: "20.0"
+        condition:
+          type: string
+          example: "sunny"
+        createdAt:
+          type: integer
+          readOnly: true
+          format: int64
+          example: 1694554228
+        updatedAt:
+          type: integer
+          readOnly: true
+          format: int64
+          example: 1694557228
+    Error:
+      type: object
+      properties:
+        key:
+          type: string
+        description:
+          type: string
+    Page:
+      type: object
+      required:
+        - count
+        - limit
+      properties:
+        limit:
+          type: integer
+          format: int64
+          example: 1
+        next:
+          type: integer
+          format: int64
+          example: 3
+        last:
+          type: integer
+          format: int64
+          example: 3
+        count:
+          type: integer
+          format: int64
+          example: 3
+        current:
+          type: integer
+          format: int64
+          example: 2
+        previous:
+          type: integer
+          format: int64
+          example: 1
+    Weather:                   #??
+      type: object
+      required:
+        - type
+      properties:
+        id:
+          type: string
+          example: "922613c8-60ce-42f4-9823-a0ee9df38828"
+        createdAt:
+          type: integer
+          readOnly: true
+          format: int64
+          example: 1694554228
+        updatedAt:
+          type: integer
+          readOnly: true
+          format: int64
+          example: 1694557228
+        deadline:
+          type: integer
+          readOnly: true
+          format: int64
+          example: 1694557228
+        type:
+          $ref: "#/components/schemas/TaskType"
+        status:
+          $ref: "#/components/schemas/TaskStatus"
+        parameter:
+          type: object
+          example:
+            {
+              "name": "default_v4",
+              "checksum": "f7efd7168f50fd6b574c1d948779ac1cc3d70afcc95c5757ff82f57bfa06b194",
+              "url": "https://no-such-thing.6river.tech/binaries/some-awesome-binary-name/1.1.3/binary.wasm",
+            }
+        result:
+          type: object
+          example: { "objectID": "922613c8-60ce-42f4-9823-a0ee9df38828" }
+    TaskType:
+      type: string
+      enum:
+        - CreateBinary
+        - UpdateBinaryData
+      description: The type of a task
+    TaskStatus:
+      type: string
+      enum:
+        - Pending
+        - Running
+        - Failed
+        - Done
+      description: The status of a task
+    CreateTask:
+      type: object
+      required:
+        - type
+      properties:
+        deadline:
+          type: integer
+          format: int64
+          example: 1694557228
+        type:
+          $ref: "#/components/schemas/TaskType"
+        parameter:
+          type: object
+          example:
+            {
+              "name": "default_v4",
+              "checksum": "f7efd7168f50fd6b574c1d948779ac1cc3d70afcc95c5757ff82f57bfa06b194",
+              "url": "https://no-such-thing.6river.tech/binaries/some-awesome-binary-name/1.1.3/binary.wasm",
+            }
+    TaskParamCreateForecast:
+      type: object
+      required:
+        - cityId
+        - forecastDate
+        - temperature
+        - condition
+      properties:
+        cityId:
+          type: string
+          example: "922613c8-60ce-42f4-9823-a0ee9df38828"
+        forecastDate:
+          type: time
+        temperature:
+          type: string
+          example: "12.0"
+        condition:
+          type: string
+          example: "Sunny"
+    TaskParamUpdateForecastData:
+      type: object
+      required:
+        - url
+        - name
+        - checksum
+      properties:
+        cityId:
+          type: string
+          example: "922613c8-60ce-42f4-9823-a0ee9df38828"
+        forecastDate:
+          type: time
+        temperature:
+          type: string
+          example: "12.0"
+        condition:
+          type: string
+          example: "Sunny"
+    TaskResultError:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          example: "Error getting weather"
+    TaskResultObjectWeather:
+      type: object
+      required:
+        - current/forecast   #??
+        - location
+      properties:

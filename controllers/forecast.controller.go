@@ -57,6 +57,19 @@ func (c *forecastController) GetRoutes() []Route {
 	}
 }
 
+// CreateForecast Create forecast
+//
+//	@Summary		Create forecast
+//	@Description	Create forecast
+//	@Tags			Forecast
+//	@Accept			json
+//	@Produce		json
+//	@Success		200	{string}	string
+//
+//	@Failure		400	{string}	string
+//	@Created		201 {string} string
+//
+//	@Router			/forecasts [post]
 func (c *forecastController) CreateForecast(ctx *fiber.Ctx) error {
 	forecast := new(model.Forecast)
 	if err := ctx.BodyParser(forecast); err != nil {
@@ -72,6 +85,16 @@ func (c *forecastController) CreateForecast(ctx *fiber.Ctx) error {
 	return ctx.Status(fiber.StatusCreated).JSON(forecast)
 }
 
+// GetAllForecasts Get all forecast
+//
+//	@Summary		Get all forecast
+//	@Description	Get all forecast details
+//	@Tags			Forecast
+//	@Accept			json
+//	@Produce		json
+//	@Success		200	{string}	string
+//	@Failure		500	{string}	string
+//	@Router			/forecasts [get]
 func (c *forecastController) GetAllForecasts(ctx *fiber.Ctx) error {
 	forecasts, err := c.DB.FindAll()
 	if err != nil {
@@ -82,6 +105,17 @@ func (c *forecastController) GetAllForecasts(ctx *fiber.Ctx) error {
 	return ctx.Status(fiber.StatusOK).JSON(forecasts)
 }
 
+// GetForecastByID Get forecast by id
+//
+//	@Summary		Get forecast by id
+//	@Description	Get forecast by id
+//	@Tags			Forecast
+//	@Accept			json
+//	@Produce		json
+//	@Param			id	path		string	true	" get forecast by id"
+//	@Success		200	{string}	string
+//	@Failure		404	{string}	string
+//	@Router			/forecasts/{id} [get]
 func (c *forecastController) GetForecastByID(ctx *fiber.Ctx) error {
 	id := ctx.Params("id")
 	forecast, err := c.DB.FindByID(id)
@@ -93,6 +127,19 @@ func (c *forecastController) GetForecastByID(ctx *fiber.Ctx) error {
 	return ctx.Status(fiber.StatusOK).JSON(forecast)
 }
 
+// UpdateForecast Update forecast by id
+//
+//	@Summary		Update forecast by id
+//	@Description	Update forecast by id
+//	@Tags			Forecast
+//	@Accept			json
+//	@Produce		json
+//	@Param			id			path		string	true	" Update forecast by id"
+//	@Param			forecast	body		string	true	" Update forecast by id"
+//	@Success		200			{string}	string
+//	@Failure		400			{string}	string
+//	@Failure		500			{string}	string
+//	@Router			/forecasts/{id} [put]
 func (c *forecastController) UpdateForecast(ctx *fiber.Ctx) error {
 	id := ctx.Params("id")
 	forecast := new(model.Forecast)
@@ -109,6 +156,17 @@ func (c *forecastController) UpdateForecast(ctx *fiber.Ctx) error {
 	return ctx.Status(fiber.StatusOK).JSON(forecast)
 }
 
+// DeleteForecast Delete forecast by id
+//
+//	@Summary		Delete forecast by id
+//	@Description	Delete forecast by id
+//	@Tags			Forecast
+//	@Accept			json
+//	@Produce		json
+//	@Param			id	path		string	true	" Delete forecast by id"
+//	@Success		200	{string}	string
+//	@Failure		500	{string}	string
+//	@Router			/forecasts/{id} [delete]
 func (c *forecastController) DeleteForecast(ctx *fiber.Ctx) error {
 	id := ctx.Params("id")
 	if err := c.DB.Delete(id); err != nil {

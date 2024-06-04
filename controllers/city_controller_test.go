@@ -19,7 +19,7 @@ func Test_GetCityById(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockCityRepo := repositories.NewMockCityRepo(ctrl)
+	mockCityRepo := mocks.NewMockCityRepo(ctrl)
 	controller := NewCityController(mockCityRepo)
 
 	testID := "1"
@@ -51,7 +51,7 @@ func Test_DeleteCity(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockCityRepo := repositories.NewMockCityRepo(ctrl)
+	mockCityRepo := mocks.NewMockCityRepo(ctrl)
 	controller := NewCityController(mockCityRepo)
 
 	testID := "1"
@@ -85,7 +85,7 @@ func TestRegisterCity(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockCityRepo := repositories.NewMockCityRepo(ctrl)
+	mockCityRepo := mocks.NewMockCityRepo(ctrl)
 	controller := NewCityController(mockCityRepo)
 
 	testCity := &model.City{Name: "Sofia", Country: "Bulgaria"}
@@ -119,7 +119,7 @@ func TestUpdateCity(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockCityRepo := repositories.NewMockCityRepo(ctrl)
+	mockCityRepo := mocks.NewMockCityRepo(ctrl)
 	controller := NewCityController(mockCityRepo)
 
 	testID := "1"
@@ -143,7 +143,7 @@ func TestGetAllCities(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockCityRepo := repositories.NewMockCityRepo(ctrl)
+	mockCityRepo := mocks.NewMockCityRepo(ctrl)
 	controller := NewCityController(mockCityRepo)
 
 	testCities := []*model.City{

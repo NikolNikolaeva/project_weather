@@ -59,6 +59,16 @@ func (r *cityController) GetRoutes() []Route {
 	}
 }
 
+// GetCityById Get city by id
+//
+//	@Summary		Get city by id
+//	@Description	Get city details by id
+//	@Tags			City
+//	@Accept			json
+//	@Produce		json
+//	@Param			id	path		string	true	"city search by an id"
+//	@Success		200	{string}	string
+//	@Router			/cities/{id} [get]
 func (r *cityController) GetCityById(ctx *fiber.Ctx) error {
 	id := ctx.Params("id")
 	if id == "" {
@@ -85,6 +95,16 @@ func (r *cityController) GetCityById(ctx *fiber.Ctx) error {
 	return nil
 }
 
+// DeleteCity Delete city by id
+//
+//	@Summary		Delete city by id
+//	@Description	Delete city by id
+//	@Tags			City
+//	@Accept			json
+//	@Produce		json
+//	@Param			id	path		string	true	"city search by an id"
+//	@Success		200	{string}	string
+//	@Router			/cities/{id} [delete]
 func (r *cityController) DeleteCity(ctx *fiber.Ctx) error {
 	id := ctx.Params("id")
 	city, err := r.DB.FindCityByID(id)
@@ -119,6 +139,20 @@ func (r *cityController) DeleteCity(ctx *fiber.Ctx) error {
 	return nil
 }
 
+// RegisterCity Register city by id
+//
+//	@Summary		Register city by id
+//	@Description	Register city by id
+//	@Tags			City
+//	@Accept			json
+//	@Produce		json
+//	@Param			city	body		string	true	" register city"
+//	@Success		200		{string}	string
+//
+//	@Failure		400		{string}	string
+//
+//	@Failure		500		{string}	string
+//	@Router			/cities [post]
 func (r *cityController) RegisterCity(ctx *fiber.Ctx) error {
 	city := &model.City{}
 
@@ -148,6 +182,21 @@ func (r *cityController) RegisterCity(ctx *fiber.Ctx) error {
 	return nil
 }
 
+// UpdateCity Update city by id
+//
+//	@Summary		Update city by id
+//	@Description	Update city by id
+//	@Tags			City
+//	@Accept			json
+//	@Produce		json
+//	@Param			id		path		string	true	" update city by id"
+//	@Param			city	body		string	true	" update city"
+//	@Success		200		{string}	string
+//
+//	@Failure		400		{string}	string
+//
+//	@Failure		500		{string}	string
+//	@Router			/cities/{id} [put]
 func (r *cityController) UpdateCity(ctx *fiber.Ctx) error {
 	id := ctx.Params("id")
 
@@ -168,6 +217,16 @@ func (r *cityController) UpdateCity(ctx *fiber.Ctx) error {
 	return ctx.Status(fiber.StatusOK).JSON(updatedCity)
 }
 
+// GetAllCities Get all cities
+//
+//	@Summary		Get all cities
+//	@Description	Get all cities details
+//	@Tags			City
+//	@Accept			json
+//	@Produce		json
+//	@Success		200	{string}	string
+//	@Failure		500	{string}	string
+//	@Router			/cities [get]
 func (r *cityController) GetAllCities(ctx *fiber.Ctx) error {
 
 	cities, err := r.DB.GetAllCity()

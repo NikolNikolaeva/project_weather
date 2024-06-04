@@ -8,11 +8,12 @@ import (
 
 	"github.com/NikolNikolaeva/project_weather/config"
 	"github.com/NikolNikolaeva/project_weather/controllers"
+	_ "github.com/NikolNikolaeva/project_weather/docs"
 	"github.com/NikolNikolaeva/project_weather/generated/dao"
 	"github.com/NikolNikolaeva/project_weather/repositories"
 	"github.com/NikolNikolaeva/project_weather/services"
-
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/swagger"
 	"go.uber.org/fx"
 )
 
@@ -33,6 +34,7 @@ var FXModule_HTTPServer = fx.Module(
 	fx.Invoke(
 		configureAPIRoutes,
 		registerServerStartHook,
+		GetSwagger,
 	),
 )
 
@@ -106,4 +108,8 @@ func registerServerStartHook(lc fx.Lifecycle, app *fiber.App, config *config.App
 			log.Println("Server stopped successfully")
 		},
 	))
+}
+
+func GetSwagger(app *fiber.App) {
+	app.Get("/swagger/*", swagger.HandlerDefault)
 }

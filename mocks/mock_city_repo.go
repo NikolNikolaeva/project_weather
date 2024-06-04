@@ -2,7 +2,7 @@
 // Source: github.com/NikolNikolaeva/project_weather/repositories (interfaces: CityRepo)
 
 // Package repositories is a generated GoMock package.
-package repositories
+package mocks
 
 import (
 	reflect "reflect"

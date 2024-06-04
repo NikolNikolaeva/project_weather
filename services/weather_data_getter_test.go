@@ -1,104 +1,84 @@
 package services
 
 import (
+	"encoding/json"
 	"fmt"
+	"github.com/NikolNikolaeva/project_weather/mocks"
+	"github.com/golang/mock/gomock"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
-	"github.com/NikolNikolaeva/project_weather/resources/swagger"
 	"github.com/stretchr/testify/assert"
+	swagger "github.com/weatherapicom/go"
 )
 
-func Test_NewWeatherDataGetter(t *testing.T) {
+func TestWeatherDataGetter_GetCurrentData(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-	}))
-	defer server.Close()
-	client := server.Client()
-
-	newWeatherDataGetter := NewWeatherDataGetter(client)
-	assert.NotNil(t, newWeatherDataGetter)
-}
-
-func Test_WeatherDataGetter_GetData(t *testing.T) {
-	testCases := []struct {
-		description    string
-		serverResponse string
-		serverStatus   int
-		expectedData   *swagger.WeatherDTO
-		expectedError  string
-	}{
-		{
-			description: "Successful data retrieval",
-			serverResponse: `{
-                "location": {
-                    "name": "Sofia",
-                    "country": "Bulgaria",
-                    "lat": 42.698,
-                    "lon": 23.322
-                },
-                "Current": {
-                    "last_updated": "2023-01-01 15:04",
-                    "temp_c": 15.0,
-                    "condition": {
-                        "text": "Sunny"
-                    }
-                }
-            }`,
-			serverStatus: http.StatusOK,
-			expectedData: &swagger.WeatherDTO{
-				Location: swagger.LocationDTO{
-					Name:    "Sofia",
-					Country: "Bulgaria",
-					Lat:     42.698,
-					Lon:     23.322,
-				},
-				Current: swagger.CurrentDTO{
-					LastUpdated: "2023-01-01 15:04",
-					TempC:       15.0,
-					Condition: swagger.ConditionDTO{
-						Text: "Sunny",
-					},
+		response := &swagger.InlineResponse2001{
+			Location: &swagger.Location{
+				Name:    "Sofia",
+				Country: "Bulgaria",
+				Lat:     42.698,
+				Lon:     23.322,
+			},
+			Current: &swagger.Current{
+				TempC: 15.0,
+				Condition: &swagger.CurrentCondition{
+					Text: "Sunny",
 				},
 			},
-			expectedError: "",
-		},
-		{
-			description:    "HTTP error",
-			serverResponse: ``,
-			serverStatus:   http.StatusInternalServerError,
-			expectedData:   nil,
-			expectedError:  "failed to fetch weather data: status code 500",
-		},
-		{
-			description:    "JSON parsing error",
-			serverResponse: `{invalid json}`,
-			serverStatus:   http.StatusOK,
-			expectedData:   nil,
-			expectedError:  "failed to parse weather data: invalid character",
-		},
-	}
+		}
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(response)
+	}))
+	defer server.Close()
 
-	for _, testCase := range testCases {
-		t.Run(testCase.description, func(t *testing.T) {
-			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				w.WriteHeader(testCase.serverStatus)
-				fmt.Fprintln(w, testCase.serverResponse)
-			}))
-			defer server.Close()
+	controller := gomock.NewController(t)
+	defer controller.Finish()
 
-			client := server.Client()
-			dataGetter := NewWeatherDataGetter(client)
+	dataGetter := mocks.NewMockWeatherDataGetter(controller)
+	data, err := dataGetter.GetData(server.URL)
 
-			data, err := dataGetter.GetData(server.URL)
+	assert.NoError(t, err)
+	assert.NotNil(t, data)
+	assert.Equal(t, "Sofia", data.Location.Name)
+	assert.Equal(t, "Bulgaria", data.Location.Country)
+	assert.Equal(t, 15.0, data.Current.TempC)
+	assert.Equal(t, "Sunny", data.Current.Condition.Text)
+}
 
-			if testCase.expectedError != "" {
-				assert.Error(t, err)
-				assert.Contains(t, err.Error(), testCase.expectedError)
-			} else {
-				assert.NoError(t, err)
-				assert.Equal(t, testCase.expectedData, data)
-			}
-		})
-	}
+func TestWeatherDataGetter_GetCurrentData_HTTPError(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	}))
+	defer server.Close()
+
+	controller := gomock.NewController(t)
+	defer controller.Finish()
+
+	dataGetter := mocks.NewMockWeatherDataGetter(controller)
+	data, err := dataGetter.GetData(server.URL)
+
+	assert.Error(t, err)
+	assert.Nil(t, data)
+	assert.Contains(t, err.Error(), "status code 500")
+}
+
+func TestWeatherDataGetter_GetCurrentData_JSONError(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		fmt.Fprintln(w, `{invalid json}`)
+	}))
+	defer server.Close()
+
+	controller := gomock.NewController(t)
+	defer controller.Finish()
+
+	dataGetter := mocks.NewMockWeatherDataGetter(controller)
+	data, err := dataGetter.GetData(server.URL)
+
+	assert.Error(t, err)
+	assert.Nil(t, data)
+	assert.Contains(t, err.Error(), "failed to parse weather data")
 }
