@@ -8,6 +8,7 @@ import (
 	api "github.com/NikolNikolaeva/project_weather/generated/api/weatherapi"
 )
 
+//go:generate mockgen --build_flags=--mod=mod -destination ../generated/go-mocks/services/mock_weather_data_getter.go . WeatherDataGetter
 type WeatherDataGetter interface {
 	GetCurrentData(q string, key string) (*api.Current, *api.Location, error)
 	GetForecastData(q string, days int32, key string) (*api.Forecast, *api.Location, error)

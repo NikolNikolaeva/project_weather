@@ -1,0 +1,11 @@
+generatorName: go
+inputSpec: resources/openapi/api.yaml
+outputDir: generated/api/project-weather
+additionalProperties:
+  packageName: client
+  sourceFolder: client
+  onlyInterfaces: true
+  enumClassPrefix: true
+  packageVersion: 1.0.0
+  addResponseHeaders: false
+  hideGenerationTimestamp: true

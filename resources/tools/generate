@@ -29,27 +29,15 @@ function generate_gomocks() {
   _assert_success "${PROJECT_PATH}" go generate ./...
 }
 
-function generate_api_server() {
-  local target_path="${PROJECT_PATH}/generated/rest"
-  local files_to_prune=("../api" "docs" "../README.md" "../.openapi-generator" "../.openapi-generator-ignore")
+function generate_api_models() {
+  local target_path="${PROJECT_PATH}/generated/api/project-weather"
+  local files_to_prune=( ".openapi-generator" "api" "docs" "test" ".gitignore" ".openapi-generator-ignore" ".travis.yml" "git_push.sh" "go.mod" "go.sum" "README.md" )
 
+  _assert_success "${PROJECT_PATH}" mkdir -p "${target_path}"
   _assert_success "${target_path}" rm -rf ./*
-  _assert_success "${PROJECT_PATH}" "generate" "${PROJECT_PATH}" "resources/tools/openapi/generate-client-api.yaml"
+  _assert_success "${PROJECT_PATH}" "generate" "${PROJECT_PATH}" "resources/tools/openapi/generate-server-api.yaml"
   _assert_success "${target_path}" goimports -w "."
   _assert_success "${target_path}" rm -rf "${files_to_prune[@]}"
-}
-
-function generate_api_client() {
-  local wrong_import="github.com/GIT_USER_ID/GIT_REPO_ID"
-  local target_path="${PROJECT_PATH}/it/testbed/generated/client"
-  local right_import="github.com/6RiverSystems/jigsaw/it/testbed/generated/client"
-  local files_to_prune=("api" "docs" "test" "go.mod" "go.sum" "README.md" ".travis.yml" ".gitignore" "git_push.sh" ".openapi-generator" ".openapi-generator-ignore")
-
-  _assert_success "${target_path}" rm -rf ./*
-  _assert_success "${PROJECT_PATH}" "generate" "${PROJECT_PATH}" "resources/tools/openapi/generate-test-client.yaml"
-  _assert_success "${target_path}" goimports -w "."
-  _assert_success "${target_path}" rm -rf "${files_to_prune[@]}"
-  _assert_success "${target_path}" gofmt -w -r "\"${wrong_import}\" -> \"${right_import}\"" "."
 }
 
 function main() {
@@ -59,10 +47,9 @@ function main() {
   if _is_truthy "${generate_resources}"; then
     _info "Generating resources for project '${PROJECT_NAME}'..."
 
-    generate_gomocks
     generate_db_daos
-    generate_api_server
-    generate_api_client
+    generate_gomocks
+    generate_api_models
   fi
 }
 

@@ -7,12 +7,12 @@ require (
 	github.com/fergusstrange/embedded-postgres v1.27.0
 	github.com/gofiber/fiber/v2 v2.52.4
 	github.com/gofiber/swagger v1.0.0
-	github.com/golang/mock v1.6.0
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/lib/pq v1.10.9
 	github.com/lpernett/godotenv v0.0.0-20230527005122-0de1d4c5ef5e
 	github.com/swaggo/swag v1.16.3
 	go.uber.org/fx v1.22.0
+	go.uber.org/mock v0.4.0
 	golang.org/x/oauth2 v0.20.0
 	gorm.io/driver/postgres v1.5.7
 	gorm.io/gen v0.3.26

@@ -7,8 +7,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/NikolNikolaeva/project_weather/mocks"
-	"github.com/golang/mock/gomock"
+	mock_services "github.com/NikolNikolaeva/project_weather/generated/go-mocks/services"
+	"go.uber.org/mock/gomock"
 
 	api "github.com/NikolNikolaeva/project_weather/generated/api/weatherapi"
 	"github.com/stretchr/testify/assert"
@@ -38,15 +38,16 @@ func TestWeatherDataGetter_GetCurrentData(t *testing.T) {
 	controller := gomock.NewController(t)
 	defer controller.Finish()
 
-	dataGetter := mocks.NewMockWeatherDataGetter(controller)
-	data, err := dataGetter.GetData(server.URL)
+	dataGetter := mock_services.NewMockWeatherDataGetter(controller)
+	current, location, err := dataGetter.GetCurrentData(server.URL, "")
 
 	assert.NoError(t, err)
-	assert.NotNil(t, data)
-	assert.Equal(t, "Sofia", data.Location.Name)
-	assert.Equal(t, "Bulgaria", data.Location.Country)
-	assert.Equal(t, 15.0, data.Current.TempC)
-	assert.Equal(t, "Sunny", data.Current.Condition.Text)
+	assert.NotNil(t, current)
+	assert.NotNil(t, location)
+	assert.Equal(t, 15.0, current.TempC)
+	assert.Equal(t, "Sofia", location.Name)
+	assert.Equal(t, "Bulgaria", location.Country)
+	assert.Equal(t, "Sunny", current.Condition.Text)
 }
 
 func TestWeatherDataGetter_GetCurrentData_HTTPError(t *testing.T) {
@@ -58,11 +59,12 @@ func TestWeatherDataGetter_GetCurrentData_HTTPError(t *testing.T) {
 	controller := gomock.NewController(t)
 	defer controller.Finish()
 
-	dataGetter := mocks.NewMockWeatherDataGetter(controller)
-	data, err := dataGetter.GetData(server.URL)
+	dataGetter := mock_services.NewMockWeatherDataGetter(controller)
+	current, location, err := dataGetter.GetCurrentData(server.URL, "")
 
 	assert.Error(t, err)
-	assert.Nil(t, data)
+	assert.Nil(t, current)
+	assert.Nil(t, location)
 	assert.Contains(t, err.Error(), "status code 500")
 }
 
@@ -76,10 +78,11 @@ func TestWeatherDataGetter_GetCurrentData_JSONError(t *testing.T) {
 	controller := gomock.NewController(t)
 	defer controller.Finish()
 
-	dataGetter := mocks.NewMockWeatherDataGetter(controller)
-	data, err := dataGetter.GetData(server.URL)
+	dataGetter := mock_services.NewMockWeatherDataGetter(controller)
+	current, location, err := dataGetter.GetCurrentData(server.URL, "")
 
 	assert.Error(t, err)
-	assert.Nil(t, data)
+	assert.Nil(t, current)
+	assert.Nil(t, location)
 	assert.Contains(t, err.Error(), "failed to parse weather data")
 }

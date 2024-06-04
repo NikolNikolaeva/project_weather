@@ -8,6 +8,7 @@ import (
 	"gorm.io/gorm"
 )
 
+//go:generate mockgen --build_flags=--mod=mod -destination ../generated/go-mocks/repositories/mock_forecast_repo.go . ForecastRepo
 type ForecastRepo interface {
 	FindByID(id string) (*model.Forecast, error)
 	Create(forecast *model.Forecast) error

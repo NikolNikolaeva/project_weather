@@ -9,16 +9,17 @@ import (
 	api "github.com/NikolNikolaeva/project_weather/generated/api/weatherapi"
 
 	"github.com/NikolNikolaeva/project_weather/generated/dao/model"
-	"github.com/NikolNikolaeva/project_weather/mocks"
-	"github.com/golang/mock/gomock"
+	"github.com/NikolNikolaeva/project_weather/generated/go-mocks/repositories"
+	"github.com/NikolNikolaeva/project_weather/generated/go-mocks/services"
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/mock/gomock"
 )
 
 func Test_WeatherHandler_Handle_CityRegister(t *testing.T) {
 	controller := gomock.NewController(t)
 	defer controller.Finish()
 
-	mockCityRepo := mocks.NewMockCityRepo(controller)
+	mockCityRepo := mock_repositories.NewMockCityRepo(controller)
 	mockCityRepo.EXPECT().RegisterCity(&model.City{
 		Name:      "Sofia",
 		Country:   "Bulgaria",
@@ -28,10 +29,10 @@ func Test_WeatherHandler_Handle_CityRegister(t *testing.T) {
 		ID: "some_id",
 	}, nil)
 
-	mockForeCast := mocks.NewMockForecastRepo(controller)
+	mockForeCast := mock_repositories.NewMockForecastRepo(controller)
 
-	mockGetter := mocks.NewMockWeatherDataGetter(controller)
-	mockGetter.EXPECT().GetData(gomock.Any()).Return(&api.InlineResponse2001{
+	mockGetter := mock_services.NewMockWeatherDataGetter(controller)
+	mockGetter.EXPECT().GetCurrentData(gomock.Any(), gomock.Any()).Return(&api.InlineResponse2001{
 		Current: &api.Current{
 			LastUpdated: "2007-01-02 15:04",
 		},
@@ -64,9 +65,9 @@ func Test_WeatherHandler_Handle(t *testing.T) {
 	controller := gomock.NewController(t)
 	defer controller.Finish()
 
-	mockCityRepo := mocks.NewMockCityRepo(controller)
-	mockForecastRepo := mocks.NewMockForecastRepo(controller)
-	mockGetter := mocks.NewMockWeatherDataGetter(controller)
+	mockCityRepo := mock_repositories.NewMockCityRepo(controller)
+	mockForecastRepo := mock_repositories.NewMockForecastRepo(controller)
+	mockGetter := mock_services.NewMockWeatherDataGetter(controller)
 
 	weatherHandler := NewWeatherHandler(mockCityRepo, mockForecastRepo, mockGetter)
 
@@ -121,7 +122,7 @@ func Test_WeatherHandler_Handle(t *testing.T) {
 	for _, testCase := range testCases {
 		t.Run(testCase.description, func(t *testing.T) {
 			mockCityRepo.EXPECT().RegisterCity(gomock.Any()).Return(testCase.mockCity, nil)
-			mockGetter.EXPECT().GetData(testCase.url).Return(testCase.mockWeatherData, nil)
+			mockGetter.EXPECT().GetCurrentData(testCase.url, gomock.Any()).Return(testCase.mockWeatherData, nil)
 
 			var err error
 			if testCase.period == "current" {

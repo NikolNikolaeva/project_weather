@@ -8,6 +8,7 @@ import (
 	"gorm.io/gorm"
 )
 
+//go:generate mockgen --build_flags=--mod=mod -destination ../generated/go-mocks/repositories/mock_city_repo.go . CityRepo
 type CityRepo interface {
 	FindCityByID(id string) (*model.City, error)
 	RegisterCity(city *model.City) (*model.City, error)
