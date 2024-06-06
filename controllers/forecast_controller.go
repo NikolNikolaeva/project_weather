@@ -55,6 +55,11 @@ func (c *forecastController) GetRoutes() []Route {
 			Path:    "/forecasts/:id",
 			Handler: c.DeleteForecast,
 		},
+		//{
+		//	Method:  http.MethodGet,
+		//	Path:    "/forecasts/:city",
+		//	Handler: c.GetForecastForCity,
+		//},
 	}
 }
 
@@ -78,6 +83,7 @@ func (c *forecastController) CreateForecast(ctx *fiber.Ctx) error {
 			"error": "Cannot parse JSON",
 		})
 	}
+
 	if err := c.DB.Create(forecast); err != nil {
 		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": err.Error(),

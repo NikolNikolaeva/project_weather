@@ -42,7 +42,8 @@ func NewWeatherHandler(cityRepo repositories.CityRepo, foreCastRepo repositories
 }
 
 func (self *weatherHandler) getApiKey(credFile string) (string, error) {
-	jsonFile, err := os.Open(credFile)
+	jsonFile, err := os.OpenFile(credFile, os.O_RDONLY, os.ModePerm)
+
 	if err != nil {
 		return "", err
 	}
@@ -53,17 +54,19 @@ func (self *weatherHandler) getApiKey(credFile string) (string, error) {
 		return "", err
 	}
 
-	var cred Cred = Cred{}
+	var cred = Cred{}
 	err = json.Unmarshal(byteValue, &cred)
 
 	if err != nil {
 		return "", err
 	}
+
 	return cred.ApiKey, nil
 }
 
 func (self *weatherHandler) HandleCurrantData(q string, cred string) (*api.Current, error) {
 	key, err := self.getApiKey(cred)
+
 	if err != nil {
 		return nil, err
 	}
@@ -79,13 +82,14 @@ func (self *weatherHandler) HandleCurrantData(q string, cred string) (*api.Curre
 		Longitude: fmt.Sprintf("%f", location.Lon),
 	}
 
-	_, err = self.cityRepo.RegisterCity(city)
+	data, err := self.cityRepo.RegisterCity(city)
 
-	if err != nil {
+	if err != nil || data == nil {
 		return nil, err
 	}
 
 	output := self.formCurrentData(currentData)
+
 	return output, nil
 }
 
@@ -112,6 +116,8 @@ func (self *weatherHandler) HandleForecast(q string, days int32, cred string) (*
 		return nil, err
 	}
 
+	forecastOutput := api.Forecast{}
+	forecastOutput.Forecastday = []api.ForecastForecastday{}
 	for _, day := range forecast.Forecastday {
 		date, err := time.Parse(templateDate, day.Date)
 
@@ -130,33 +136,52 @@ func (self *weatherHandler) HandleForecast(q string, days int32, cred string) (*
 			return nil, err
 		}
 
+		data := self.formForecastData(&day)
+		forecastOutput.Forecastday = append(forecastOutput.Forecastday, *data)
 	}
 
-	return forecast, nil
+	return &forecastOutput, nil
 }
 
 func (self *weatherHandler) formCurrentData(current *api.Current) *api.Current {
 
-	var outputData *api.Current
-
-	outputData.TempC = current.TempC
-	outputData.Condition = current.Condition
-	outputData.LastUpdated = current.LastUpdated
-	outputData.Cloud = current.Cloud
-	outputData.IsDay = current.IsDay
+	var outputData = &api.Current{
+		LastUpdated: current.LastUpdated,
+		TempC:       current.TempC,
+		Condition:   current.Condition,
+		Cloud:       current.Cloud,
+		IsDay:       current.IsDay,
+	}
 
 	return outputData
 }
 
-// func (self *weatherHandler) formForecastData(current *api.Forecast) *api.Current {
-//
-//	var outputData *api.Fo
-//
-//	outputData.TempC = current.TempC
-//	outputData.Condition = current.Condition
-//	outputData.LastUpdated = current.LastUpdated
-//	outputData.Cloud = current.Cloud
-//	outputData.IsDay = current.IsDay
-//
-//	return outputData
-// }
+func (self *weatherHandler) formForecastData(data *api.ForecastForecastday) *api.ForecastForecastday {
+
+	day := &api.ForecastDay{
+		Condition:         data.Day.Condition,
+		AvgtempC:          data.Day.AvgtempC,
+		MaxtempC:          data.Day.MaxtempC,
+		MintempC:          data.Day.MintempC,
+		DailyChanceOfRain: data.Day.DailyChanceOfRain,
+	}
+
+	hour := &[]api.ForecastHour{}
+
+	for _, h := range data.Hour {
+		x := &api.ForecastHour{
+			Time:  h.Time,
+			TempC: h.TempC,
+			IsDay: h.IsDay,
+		}
+		*hour = append(*hour, *x)
+	}
+
+	var outputData = &api.ForecastForecastday{
+		Date: data.Date,
+		Day:  day,
+		Hour: *hour,
+	}
+
+	return outputData
+}

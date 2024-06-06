@@ -11,7 +11,7 @@ function main() {
 
   if _is_truthy "${run_tests}"; then
     _info "Running tests for project '${PROJECT_NAME}'..."
-
+    export CGO_ENABLED=1
     _assert_success "${path}" go clean -testcache
     _assert_success "${path}" go test -race -mod=readonly -coverprofile cover.out -timeout=20s ./...
   fi

@@ -7,12 +7,12 @@ import (
 	"strings"
 	"testing"
 
-	mock_repositories "github.com/NikolNikolaeva/project_weather/generated/go-mocks/repositories"
-	"github.com/gofiber/fiber/v2"
-	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 
 	"github.com/NikolNikolaeva/project_weather/generated/dao/model"
+	mock_repositories "github.com/NikolNikolaeva/project_weather/generated/go-mocks/repositories"
+	"github.com/gofiber/fiber/v2"
+	"github.com/stretchr/testify/assert"
 )
 
 func Test_GetCityById(t *testing.T) {
@@ -146,9 +146,10 @@ func TestGetAllCities(t *testing.T) {
 	mockCityRepo := mock_repositories.NewMockCityRepo(ctrl)
 	controller := NewCityController(mockCityRepo)
 
+	id1, id2 := "1", "2"
 	testCities := []*model.City{
-		{ID: "1", Name: "Sofia", Country: "Bulgaria"},
-		{ID: "2", Name: "Plovdiv", Country: "Bulgaria"},
+		{ID: id1, Name: "Sofia", Country: "Bulgaria"},
+		{ID: id2, Name: "Plovdiv", Country: "Bulgaria"},
 	}
 
 	mockCityRepo.EXPECT().GetAllCity().Return(testCities, nil)

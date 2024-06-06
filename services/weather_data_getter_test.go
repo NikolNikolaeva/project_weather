@@ -1,88 +1,56 @@
 package services
 
 import (
-	"encoding/json"
-	"fmt"
-	"net/http"
-	"net/http/httptest"
 	"testing"
 
-	mock_services "github.com/NikolNikolaeva/project_weather/generated/go-mocks/services"
+	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 
 	api "github.com/NikolNikolaeva/project_weather/generated/api/weatherapi"
-	"github.com/stretchr/testify/assert"
+	mock_services "github.com/NikolNikolaeva/project_weather/generated/go-mocks/services"
 )
 
-func TestWeatherDataGetter_GetCurrentData(t *testing.T) {
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		response := &api.InlineResponse2001{
-			Location: &api.Location{
-				Name:    "Sofia",
-				Country: "Bulgaria",
-				Lat:     42.698,
-				Lon:     23.322,
-			},
-			Current: &api.Current{
-				TempC: 15.0,
-				Condition: &api.CurrentCondition{
-					Text: "Sunny",
-				},
-			},
-		}
-		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(response)
-	}))
-	defer server.Close()
+func Test_GetCurrentData(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
 
-	controller := gomock.NewController(t)
-	defer controller.Finish()
+	mockClient := mock_services.NewMockWeatherDataGetter(ctrl)
 
-	dataGetter := mock_services.NewMockWeatherDataGetter(controller)
-	current, location, err := dataGetter.GetCurrentData(server.URL, "")
+	q := "London"
+	key := "test_key"
 
+	expectedCurrent := &api.Current{TempC: 20.0}
+	expectedLocation := &api.Location{Name: "London"}
+
+	mockClient.EXPECT().
+		GetCurrentData(q, key).
+		Return(expectedCurrent, expectedLocation, nil)
+
+	current, location, err := mockClient.GetCurrentData(q, key)
 	assert.NoError(t, err)
-	assert.NotNil(t, current)
-	assert.NotNil(t, location)
-	assert.Equal(t, 15.0, current.TempC)
-	assert.Equal(t, "Sofia", location.Name)
-	assert.Equal(t, "Bulgaria", location.Country)
-	assert.Equal(t, "Sunny", current.Condition.Text)
+	assert.Equal(t, expectedCurrent, current)
+	assert.Equal(t, expectedLocation, location)
 }
 
-func TestWeatherDataGetter_GetCurrentData_HTTPError(t *testing.T) {
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusInternalServerError)
-	}))
-	defer server.Close()
+func Test_GetForecastData(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
 
-	controller := gomock.NewController(t)
-	defer controller.Finish()
+	mockClient := mock_services.NewMockWeatherDataGetter(ctrl)
 
-	dataGetter := mock_services.NewMockWeatherDataGetter(controller)
-	current, location, err := dataGetter.GetCurrentData(server.URL, "")
+	q := "London"
+	days := int32(3)
+	key := "test_key"
 
-	assert.Error(t, err)
-	assert.Nil(t, current)
-	assert.Nil(t, location)
-	assert.Contains(t, err.Error(), "status code 500")
-}
+	expectedForecast := &api.Forecast{}
+	expectedLocation := &api.Location{Name: "London"}
 
-func TestWeatherDataGetter_GetCurrentData_JSONError(t *testing.T) {
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		fmt.Fprintln(w, `{invalid json}`)
-	}))
-	defer server.Close()
+	mockClient.EXPECT().
+		GetForecastData(q, days, key).
+		Return(expectedForecast, expectedLocation, nil)
 
-	controller := gomock.NewController(t)
-	defer controller.Finish()
-
-	dataGetter := mock_services.NewMockWeatherDataGetter(controller)
-	current, location, err := dataGetter.GetCurrentData(server.URL, "")
-
-	assert.Error(t, err)
-	assert.Nil(t, current)
-	assert.Nil(t, location)
-	assert.Contains(t, err.Error(), "failed to parse weather data")
+	forecast, location, err := mockClient.GetForecastData(q, days, key)
+	assert.NoError(t, err)
+	assert.Equal(t, expectedForecast, forecast)
+	assert.Equal(t, expectedLocation, location)
 }

@@ -19,30 +19,30 @@ func Test_WeatherHandler_Handle_CityRegister(t *testing.T) {
 	controller := gomock.NewController(t)
 	defer controller.Finish()
 
-	mockCityRepo := mock_repositories.NewMockCityRepo(controller)
-	mockCityRepo.EXPECT().RegisterCity(&model.City{
+	city := &model.City{
 		Name:      "Sofia",
 		Country:   "Bulgaria",
 		Latitude:  "42.098000",
-		Longitude: "43.787000",
-	}).Return(&model.City{
+		Longitude: "43.786999",
+	}
+	mockCityRepo := mock_repositories.NewMockCityRepo(controller)
+	mockCityRepo.EXPECT().RegisterCity(city).Return(&model.City{
 		ID: "some_id",
 	}, nil)
 
 	mockForeCast := mock_repositories.NewMockForecastRepo(controller)
 
 	mockGetter := mock_services.NewMockWeatherDataGetter(controller)
-	mockGetter.EXPECT().GetCurrentData(gomock.Any(), gomock.Any()).Return(&api.InlineResponse2001{
-		Current: &api.Current{
+	mockGetter.EXPECT().GetCurrentData("Sofia", "test_api_key").Return(
+		&api.Current{
 			LastUpdated: "2007-01-02 15:04",
 		},
-		Location: &api.Location{
+		&api.Location{
 			Name:    "Sofia",
 			Country: "Bulgaria",
 			Lat:     42.098,
 			Lon:     43.787,
-		},
-	}, nil)
+		}, nil)
 
 	weatherHandler := NewWeatherHandler(mockCityRepo, mockForeCast, mockGetter)
 
@@ -56,7 +56,8 @@ func Test_WeatherHandler_Handle_CityRegister(t *testing.T) {
 	err = tmpFile.Close()
 	assert.NoError(t, err)
 
-	_, err = weatherHandler.HandleCurrantData("www.weather.com", tmpFile.Name())
+	curr, err := weatherHandler.HandleCurrantData("Sofia", tmpFile.Name())
+	assert.Equal(t, curr.LastUpdated, "2007-01-02 15:04")
 
 	assert.NoError(t, err)
 }
@@ -81,25 +82,32 @@ func Test_WeatherHandler_Handle(t *testing.T) {
 	err = tmpFile.Close()
 	assert.NoError(t, err)
 
+	id := "some_id"
 	testCases := []struct {
-		description     string
-		url             string
-		period          string
-		mockCity        *model.City
-		mockWeatherData *api.InlineResponse2001
-		expectedError   error
+		description      string
+		url              string
+		period           string
+		mockCity         *model.City
+		mockCurrData     *api.Current
+		mockForecastData *api.Forecast
+		city             *api.Location
+		expectedError    error
 	}{
 		{
 			description: "Handle current weather data",
 			url:         "www.weather.com",
 			period:      "current",
 			mockCity: &model.City{
-				ID: "some_id",
+				ID: id,
 			},
-			mockWeatherData: &api.InlineResponse2001{
-				Current: &api.Current{
-					LastUpdated: time.Now().Format(templateDateAndTime),
-				},
+			mockCurrData: &api.Current{
+				LastUpdated: time.Now().Format(templateDateAndTime),
+			},
+			city: &api.Location{
+				Name:    "Sofia",
+				Country: "Bulgaria",
+				Lat:     42.098,
+				Lon:     43.787,
 			},
 			expectedError: nil,
 		},
@@ -108,12 +116,16 @@ func Test_WeatherHandler_Handle(t *testing.T) {
 			url:         "www.weather.com",
 			period:      "daily",
 			mockCity: &model.City{
-				ID: "some_id",
+				ID: id,
 			},
-			mockWeatherData: &api.InlineResponse2001{
-				Forecast: &api.Forecast{
-					Forecastday: []api.ForecastForecastday{},
-				},
+			mockForecastData: &api.Forecast{
+				Forecastday: []api.ForecastForecastday{},
+			},
+			city: &api.Location{
+				Name:    "Sofia",
+				Country: "Bulgaria",
+				Lat:     42.098,
+				Lon:     43.787,
 			},
 			expectedError: nil,
 		},
@@ -122,22 +134,27 @@ func Test_WeatherHandler_Handle(t *testing.T) {
 	for _, testCase := range testCases {
 		t.Run(testCase.description, func(t *testing.T) {
 			mockCityRepo.EXPECT().RegisterCity(gomock.Any()).Return(testCase.mockCity, nil)
-			mockGetter.EXPECT().GetCurrentData(testCase.url, gomock.Any()).Return(testCase.mockWeatherData, nil)
 
-			var err error
 			if testCase.period == "current" {
-				_, err = weatherHandler.HandleCurrantData(testCase.url, tmpFile.Name())
+				mockGetter.EXPECT().GetCurrentData("Sofia", "test_api_key").Return(testCase.mockCurrData, testCase.city, nil)
+				data, err := weatherHandler.HandleCurrantData("Sofia", tmpFile.Name())
+
+				assert.Equal(t, testCase.mockCurrData.LastUpdated, data.LastUpdated)
+				assert.Equal(t, testCase.expectedError, err)
 			} else {
-				_, err = weatherHandler.HandleCurrantData(testCase.url, tmpFile.Name())
+				mockGetter.EXPECT().GetForecastData("Sofia", int32(1), "test_api_key").Return(testCase.mockForecastData, testCase.city, nil)
+				data, err := weatherHandler.HandleForecast("Sofia", int32(1), tmpFile.Name())
+
+				assert.Equal(t, testCase.mockForecastData, data)
+				assert.Equal(t, testCase.expectedError, err)
 			}
-			assert.Equal(t, testCase.expectedError, err)
+
 		})
 	}
 }
 
 func Test_WeatherHandler_getApiKey(t *testing.T) {
 
-	// Prepare a temporary credentials file for testing
 	credContent := `{"apiKey": "test_api_key"}`
 	tmpFile, err := ioutil.TempFile("", "temp.json")
 	assert.NoError(t, err)

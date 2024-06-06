@@ -7,7 +7,7 @@ readonly PROJECT_NAME="$(basename "${PROJECT_PATH}")"
 
 function main() {
   _load_environment "${PROJECT_PATH}/resources/environments/local.env"
-  _assert_success "${PROJECT_PATH}" go build -gcflags="all=-N -l" -o "${PROJECT_NAME}"
+  _assert_success "${PROJECT_PATH}" go build -mod=mod -gcflags="all=-N -l" -o "${PROJECT_NAME}"
   _assert_success "${PROJECT_PATH}" "./${PROJECT_NAME}"
 }
 

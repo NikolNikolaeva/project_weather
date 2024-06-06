@@ -19,13 +19,13 @@ function generate() {
 
 function generate_db_daos() {
   _assert_success "${PROJECT_PATH}" rm -rf "generated/dao"
-  _assert_success "${PROJECT_PATH}" go run resources/tools/gorm/main.go
+  _assert_success "${PROJECT_PATH}" go run -mod=mod resources/tools/gorm/main.go
 }
 
 function generate_gomocks() {
   _assert_success "${PROJECT_PATH}" rm -rf "generated/go-mocks"
   _assert_success "${PROJECT_PATH}" go install -mod=mod go.uber.org/mock/mockgen
-  _assert_success "${PROJECT_PATH}" go generate ./...
+  _assert_success "${PROJECT_PATH}" go generate -mod=mod ./...
 }
 
 function generate_api_models() {

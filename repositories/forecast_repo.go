@@ -38,7 +38,18 @@ func (self *forecastRepo) FindByID(id string) (*model.Forecast, error) {
 	return forecast, nil
 }
 
+func (self *forecastRepo) FindByCityId(cityId string) ([]*model.Forecast, error) {
+	forecast, err := self.q.Forecast.Where(
+		self.q.Forecast.CityID.Eq(cityId),
+	).Find()
+	if err != nil {
+		return nil, err
+	}
+	return forecast, nil
+}
+
 func (self *forecastRepo) Create(forecast *model.Forecast) error {
+
 	err := self.q.Forecast.Create(forecast)
 	return err
 }
