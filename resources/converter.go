@@ -1,7 +1,7 @@
 package resources
 
 import (
-	"fmt"
+	"log"
 	"time"
 
 	api "github.com/NikolNikolaeva/project_weather/generated/api/project-weather/rest"
@@ -46,15 +46,10 @@ func (self *converter) ConvertModelCityToApiCity(cityModel *model.City) *api.Cit
 
 func (self *converter) ConvertModelForecastToApiForecast(forecastModel *model.Forecast) *api.Forecast {
 
-	templateDate := "2006-01-02"
-	day, err := time.Parse(templateDate, fmt.Stringer.String(forecastModel.ForecastDate))
-	if err != nil {
-		return nil
-	}
 	return &api.Forecast{
 		Id:           forecastModel.ID,
 		CityId:       forecastModel.CityID,
-		ForecastDate: fmt.Stringer.String(day),
+		ForecastDate: forecastModel.ForecastDate.Format(time.DateOnly),
 		Temperature:  forecastModel.Temperature,
 		Condition:    forecastModel.Condition,
 	}
@@ -65,6 +60,7 @@ func (self *converter) ConvertApiForecastToModelForecast(forecastModel *api.Fore
 	templateDate := "2006-01-02"
 	day, err := time.Parse(templateDate, forecastModel.ForecastDate)
 	if err != nil {
+		log.Println(err)
 		return nil
 	}
 	return &model.Forecast{

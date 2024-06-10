@@ -67,8 +67,6 @@ func (self *cityRepo) RegisterCity(city *model.City) (*model.City, error) {
 	if err == nil && existCity.ID != "" {
 		return existCity, err
 	}
-	fmt.Printf("city: %#v", city)
-	fmt.Printf("existCity: %#v, err: %v", existCity, err)
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		err = self.q.City.Create(city)
 		fmt.Printf("created city: %#v, err: %v", city, err)

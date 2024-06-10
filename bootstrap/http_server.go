@@ -94,15 +94,8 @@ func configureAPIRoutes(app *mux.Router, routes api.Routes) {
 
 func createHttpServer(routes api.Routes, config *config.ApplicationConfiguration, router *mux.Router) *http.Server {
 	return &http.Server{
-		Addr: ":" + config.HTTPPort,
-		Handler: utils.Reduce(
-			router,
-			utils.Values(routes),
-			func(router *mux.Router, route api.Route) *mux.Router {
-				router.Handle(route.Pattern, route.HandlerFunc)
-				return router
-			},
-		),
+		Addr:    ":" + config.HTTPPort,
+		Handler: router,
 	}
 }
 

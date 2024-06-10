@@ -60,7 +60,6 @@ func (s *ForecastAPIService) GetAllForecasts(ctx context.Context) (api.ImplRespo
 		forecastsApi = append(forecastsApi, forecastApi)
 	}
 
-	fmt.Println("forecast:", forecastsApi)
 	return api.Response(http.StatusOK, forecastsApi), nil
 }
 
