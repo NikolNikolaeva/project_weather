@@ -54,7 +54,7 @@ func (self *weatherHandler) getApiKey(credFile string) (string, error) {
 		return "", err
 	}
 
-	var cred = Cred{}
+	var cred Cred
 	err = json.Unmarshal(byteValue, &cred)
 
 	if err != nil {
@@ -145,7 +145,7 @@ func (self *weatherHandler) HandleForecast(q string, days int32, cred string) (*
 
 func (self *weatherHandler) formCurrentData(current *api.Current) *api.Current {
 
-	var outputData = &api.Current{
+	outputData := &api.Current{
 		LastUpdated: current.LastUpdated,
 		TempC:       current.TempC,
 		Condition:   current.Condition,
@@ -166,7 +166,7 @@ func (self *weatherHandler) formForecastData(data *api.ForecastForecastday) *api
 		DailyChanceOfRain: data.Day.DailyChanceOfRain,
 	}
 
-	hour := &[]api.ForecastHour{}
+	var hour []api.ForecastHour
 
 	for _, h := range data.Hour {
 		x := &api.ForecastHour{
@@ -174,13 +174,13 @@ func (self *weatherHandler) formForecastData(data *api.ForecastForecastday) *api
 			TempC: h.TempC,
 			IsDay: h.IsDay,
 		}
-		*hour = append(*hour, *x)
+		hour = append(hour, *x)
 	}
 
-	var outputData = &api.ForecastForecastday{
+	outputData := &api.ForecastForecastday{
 		Date: data.Date,
 		Day:  day,
-		Hour: *hour,
+		Hour: hour,
 	}
 
 	return outputData

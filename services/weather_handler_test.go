@@ -8,11 +8,12 @@ import (
 
 	api "github.com/NikolNikolaeva/project_weather/generated/api/weatherapi"
 
+	"github.com/stretchr/testify/assert"
+	"go.uber.org/mock/gomock"
+
 	"github.com/NikolNikolaeva/project_weather/generated/dao/model"
 	mock_repositories "github.com/NikolNikolaeva/project_weather/generated/go-mocks/repositories"
 	mock_services "github.com/NikolNikolaeva/project_weather/generated/go-mocks/services"
-	"github.com/stretchr/testify/assert"
-	"go.uber.org/mock/gomock"
 )
 
 func Test_WeatherHandler_Handle_CityRegister(t *testing.T) {

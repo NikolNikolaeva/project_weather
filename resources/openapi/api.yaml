@@ -14,11 +14,6 @@ paths:
       tags:
         - city
       operationId: GetAllCities
-      parameters:
-        - name: id
-          in: path
-          schema:
-            type: string
       responses:
         "200":
           description: Success.
@@ -254,47 +249,42 @@ paths:
                 key: "INTERNAL_SERVER_ERROR"
                 description: "An unexpected server error occurred"
 
-  # /forecasts?city={name}&period={period}
-
   /forecasts:
     get:
       description: "Return all registered forecasts"
       tags:
         - forecast
       operationId: GetAllForecasts
-      parameters:
-        - name: page
-          in: query
-          schema:
-            type: integer
-            format: int64
-            minimum: 1
-            default: 1
-        - name: limit
-          in: query
-          schema:
-            type: integer
-            format: int64
-            minimum: 1
-            maximum: 200
-            default: 20
+#      parameters:
+#        - name: page
+#          in: query
+#          schema:
+#            type: integer
+#            format: int64
+#            minimum: 1
+#            default: 1
+#        - name: limit
+#          in: query
+#          schema:
+#            type: integer
+#            format: int64
+#            minimum: 1
+#            maximum: 200
+#            default: 20
       responses:
         "200":
           description: Success.
           content:
             application/json:
               schema:
-                type: object
-                required:
-                  - data
-                  - page
-                properties:
-                  page:
-                    $ref: "#/components/schemas/Page"
-                  data:
-                    type: array
-                    items:
-                      $ref: "#/components/schemas/Forecast"
+#                required:
+#                  - data
+#                  - page
+#                properties:
+#                  page:
+#                    $ref: "#/components/schemas/Page"
+#                  data:
+               $ref: "#/components/schemas/Forecast"
         "400":
           description: Malformed or invalid payload.
           content:
@@ -371,7 +361,7 @@ paths:
     get:
       description: "Returns a specific forecast by id"
       tags:
-        - city
+        - forecast
       operationId: GetForecastById
       parameters:
         - name: id
@@ -484,7 +474,7 @@ paths:
     delete:
       description: "Deletes a specific binary based on its name (returns success even if not existing)"
       tags:
-        - city
+        - forecast
       operationId: DeleteForecastById
       parameters:
         - name: id
@@ -522,6 +512,8 @@ paths:
               example:
                 key: "INTERNAL_SERVER_ERROR"
                 description: "An unexpected server error occurred"
+
+  # /forecasts?city={name}&period={period}
 
   /weather/{city}/{period}:
     get:

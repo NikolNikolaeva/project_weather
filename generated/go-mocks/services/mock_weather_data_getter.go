@@ -12,8 +12,9 @@ package mock_services
 import (
 	reflect "reflect"
 
-	weatherapi "github.com/NikolNikolaeva/project_weather/generated/api/weatherapi"
 	gomock "go.uber.org/mock/gomock"
+
+	weatherapi "github.com/NikolNikolaeva/project_weather/generated/api/weatherapi"
 )
 
 // MockWeatherDataGetter is a mock of WeatherDataGetter interface.

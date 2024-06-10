@@ -38,6 +38,7 @@ var FXModule_Persistence = fx.Module(
 
 func registerEmbeddedPostgresStopHook(lc fx.Lifecycle, embeddedDB *embeddedpostgres.EmbeddedPostgres) {
 	lc.Append(fx.StopHook(func() error {
+
 		return embeddedDB.Stop()
 	}))
 }

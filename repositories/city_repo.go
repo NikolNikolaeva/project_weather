@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"errors"
+	"fmt"
 
 	"gorm.io/gorm"
 
@@ -59,7 +60,6 @@ func (self *cityRepo) GetAllCity() ([]*model.City, error) {
 }
 
 func (self *cityRepo) RegisterCity(city *model.City) (*model.City, error) {
-
 	existCity, err := self.q.City.Where(
 		self.q.City.Name.Eq(city.Name),
 	).First()
@@ -67,10 +67,11 @@ func (self *cityRepo) RegisterCity(city *model.City) (*model.City, error) {
 	if err == nil && existCity.ID != "" {
 		return existCity, err
 	}
-
-	if err == gorm.ErrRecordNotFound {
-
+	fmt.Printf("city: %#v", city)
+	fmt.Printf("existCity: %#v, err: %v", existCity, err)
+	if errors.Is(err, gorm.ErrRecordNotFound) {
 		err = self.q.City.Create(city)
+		fmt.Printf("created city: %#v, err: %v", city, err)
 		if err != nil {
 			return nil, err
 		}

@@ -15,7 +15,7 @@ function main() {
   if _is_truthy "${lint_project}"; then
     _info "Running linter for project '${PROJECT_NAME}'..."
 
-    _assert_success "${PROJECT_PATH}" goimports -local="github.com/6RiverSystems" -w "."
+    _assert_success "${PROJECT_PATH}" goimports -local="github.com/NikolNikolaeva" -w "."
     _assert_success "${PROJECT_PATH}" go install -mod=mod "${GOLANGCI_LINT_REPO}@${GOLANGCI_LINT_VERSION}"
     _assert_success "${PROJECT_PATH}" go vet ./...
     _assert_success "${PROJECT_PATH}" golangci-lint cache clean

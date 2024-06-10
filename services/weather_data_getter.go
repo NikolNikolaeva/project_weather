@@ -18,7 +18,7 @@ type weatherDataGetter struct {
 	client *http.Client
 }
 
-func NewWeatherDataGetter(client *http.Client) WeatherDataGetter {
+func NewWeatherDataRetriever(client *http.Client) WeatherDataGetter {
 	return &weatherDataGetter{
 		client: client,
 	}

@@ -12,8 +12,9 @@ package mock_repositories
 import (
 	reflect "reflect"
 
-	model "github.com/NikolNikolaeva/project_weather/generated/dao/model"
 	gomock "go.uber.org/mock/gomock"
+
+	model "github.com/NikolNikolaeva/project_weather/generated/dao/model"
 )
 
 // MockCityRepo is a mock of CityRepo interface.
