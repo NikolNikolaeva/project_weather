@@ -1,10 +1,11 @@
 package config
 
 import (
-	"github.com/lpernett/godotenv"
 	"time"
+
+	"github.com/kelseyhightower/envconfig"
+	"github.com/lpernett/godotenv"
 )
-import "github.com/kelseyhightower/envconfig"
 
 func NewApplicationConfiguration(envfile string) (*ApplicationConfiguration, error) {
 	if envfile != "" {
@@ -25,17 +26,17 @@ type ApplicationConfiguration struct {
 	HTTPServerReadTimeout  time.Duration `envconfig:"HTTP_SERVER_READ_TIMEOUT" default:"5s"`
 	HTTPServerWriteTimeout time.Duration `envconfig:"HTTP_SERVER_WRITE_TIMEOUT" default:"5s"`
 
-	DBHost                 string `envconfig:"DB_HOST"`
-	DBPort                 string `envconfig:"DB_PORT"`
-	DBName                 string `envconfig:"DB_NAME"`
-	DBUsername             string `envconfig:"DB_USERNAME"`
-	DBPassword             string `envconfig:"DB_PASSWORD"`
-	DatabaseMigrationsPath string `envconfig:"DATABASE_MIGRATIONS_PATH"`
-	SSLMode                string `envconfig:"SSL_MODE"`
-	BinaryParameter        string `envconfig:"BINARY_PARAMETER"`
+	DBHost                 string `envconfig:"DB_HOST" default:"localhost"`
+	DBPort                 string `envconfig:"DB_PORT" default:"5432"`
+	DBName                 string `envconfig:"DB_NAME" default:"postgres"`
+	DBUsername             string `envconfig:"DB_USERNAME" default:"postgres"`
+	DBPassword             string `envconfig:"DB_PASSWORD" default:"postgres"`
+	DatabaseMigrationsPath string `envconfig:"DATABASE_MIGRATIONS_PATH" default:"./resources/migrations"`
+	SSLMode                string `envconfig:"SSL_MODE" default:"disable"`
+	BinaryParameter        string `envconfig:"BINARY_PARAMETER" default:"yes"`
 
-	ApiKeyWeatherApi string `envconfig:"API_KEY_WEATHER_API"`
+	ForecastUrl    string `envconfig:"FORECAST_URL" default:"http://api.weatherapi.com/v1/forecast.json?key=%s&q=%s&days=%v&aqi=no&alerts=no"`
+	CurrentTimeUrl string `envconfig:"CURRENT_TIME_URL" default:"http://api.weatherapi.com/v1/current.json?key=%s&q=%s&aqi=no"`
 
-	ForecastUrl    string `envconfig:"FORECAST_URL"`
-	CurrentTimeUrl string `envconfig:"CURRENT_TIME_URL"`
+	CredFile string `envconfig:"CRED_FILE" default:"cred.json"`
 }

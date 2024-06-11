@@ -1,34 +1,37 @@
 package bootstrap
 
 import (
-	"fmt"
+	"context"
 	"log"
 	"net/http"
-	"slices"
+
+	"github.com/gorilla/mux"
+	"go.uber.org/fx"
 
 	"github.com/NikolNikolaeva/project_weather/config"
-	"github.com/NikolNikolaeva/project_weather/controllers"
+	api "github.com/NikolNikolaeva/project_weather/generated/api/project-weather/rest"
 	"github.com/NikolNikolaeva/project_weather/generated/dao"
 	"github.com/NikolNikolaeva/project_weather/repositories"
+	"github.com/NikolNikolaeva/project_weather/resources"
 	"github.com/NikolNikolaeva/project_weather/services"
-
-	"github.com/gofiber/fiber/v2"
-	"go.uber.org/fx"
+	"github.com/NikolNikolaeva/project_weather/utils"
 )
 
 var FXModule_HTTPServer = fx.Module(
 	"http-server",
 	fx.Provide(
-		createFiberApp,
 		createAPIRoutes,
 		createCityRepo,
 		createCityController,
 		createForecastRepo,
 		createForecastController,
-		createWeatherApiService,
 		createHTTPClient,
-		services.NewWeatherHandler,
-		services.NewWeatherDataGetter,
+		createWeatherHandler,
+		createWeatherDataRetriever,
+		createWeatherController,
+		createHttpServer,
+		createConverter,
+		createMuxRouter,
 	),
 	fx.Invoke(
 		configureAPIRoutes,
@@ -36,16 +39,20 @@ var FXModule_HTTPServer = fx.Module(
 	),
 )
 
-func createFiberApp() *fiber.App {
-	return fiber.New()
+func createAPIRoutes(cities *api.CityAPIController, forecasts *api.ForecastAPIController, weather *api.WeatherAPIController) api.Routes {
+	return utils.Merge(
+		cities.Routes(),
+		weather.Routes(),
+		forecasts.Routes(),
+	)
 }
 
-func createAPIRoutes(cities controllers.CityController, forecasts controllers.ForecastController, weather services.WeatherApiService) []controllers.Route {
-	return slices.Concat(
-		cities.GetRoutes(),
-		forecasts.GetRoutes(),
-		weather.GetRoutes(),
-	)
+func createWeatherDataRetriever(client *http.Client) services.WeatherDataGetter {
+	return services.NewWeatherDataRetriever(client)
+}
+
+func createWeatherHandler(cityRepo repositories.CityRepo, forecastRepo repositories.ForecastRepo, getter services.WeatherDataGetter) services.WeatherHandler {
+	return services.NewWeatherHandler(cityRepo, forecastRepo, getter)
 }
 
 func createHTTPClient() *http.Client {
@@ -60,40 +67,55 @@ func createForecastRepo(q *dao.Query) repositories.ForecastRepo {
 	return repositories.NewForecastRepo(q)
 }
 
-func createForecastController(db repositories.ForecastRepo) controllers.ForecastController {
-	return controllers.NewForecastController(db)
+func createCityController(db repositories.CityRepo, convert resources.ConverterI) *api.CityAPIController {
+	return api.NewCityAPIController(services.NewCityAPIService(db, convert))
 }
 
-func createCityController(db repositories.CityRepo) controllers.CityController {
-	return controllers.NewCityController(db)
+func createForecastController(db repositories.ForecastRepo, convert resources.ConverterI) *api.ForecastAPIController {
+	return api.NewForecastAPIController(services.NewForecastAPIService(db, convert))
 }
 
-func createWeatherApiService(config *config.ApplicationConfiguration, xHandler services.WeatherHandler) services.WeatherApiService {
-	return services.NewWeatherService(config.ApiKeyWeatherApi, xHandler, config)
+func createWeatherController(handler services.WeatherHandler, config *config.ApplicationConfiguration) *api.WeatherAPIController {
+	return api.NewWeatherAPIController(services.NewWeatherAPIService(handler, config))
 }
-func configureAPIRoutes(app *fiber.App, routes []controllers.Route) {
+
+func createMuxRouter() *mux.Router {
+	return mux.NewRouter()
+
+}
+
+func configureAPIRoutes(app *mux.Router, routes api.Routes) {
 	for _, route := range routes {
-		log.Printf("Registering route: %s %s", route.Method, route.Path)
-		app.Add(route.Method, route.Path, route.Handler)
+		log.Printf("Registering route: %s %s", route.Method, route.Pattern)
+		app.HandleFunc(route.Pattern, route.HandlerFunc)
+	}
+	http.Handle("/", app)
+}
+
+func createHttpServer(routes api.Routes, config *config.ApplicationConfiguration, router *mux.Router) *http.Server {
+	return &http.Server{
+		Addr:    ":" + config.HTTPPort,
+		Handler: router,
 	}
 }
 
-func registerServerStartHook(lc fx.Lifecycle, app *fiber.App, config *config.ApplicationConfiguration) {
+func createConverter() resources.ConverterI {
+	return resources.NewConverter()
+}
+
+func registerServerStartHook(lc fx.Lifecycle, server *http.Server) {
 	lc.Append(fx.StartStopHook(
 		func() {
 			go func() {
-				err := app.Listen(fmt.Sprintf(":%s", config.HTTPPort))
-				if err != nil {
-					log.Fatalf("Failed to start server: %v", err)
+				if err := server.ListenAndServe(); err != nil {
+					log.Fatalf("failed to start server: %v", err)
 				}
-				log.Printf("Server is starting on port %s", config.HTTPPort)
 			}()
 		},
 		func() {
-			if err := app.Shutdown(); err != nil {
-				log.Printf("Error shutting down server: %v", err)
+			if err := server.Shutdown(context.Background()); err != nil {
+				log.Fatalf("failed to shutdown server: %v", err)
 			}
-			log.Println("Server stopped successfully")
 		},
 	))
 }

@@ -1,42 +1,65 @@
 package services
 
 import (
-	"encoding/json"
+	"context"
 	"fmt"
 	"net/http"
 
-	"github.com/NikolNikolaeva/project_weather/resources/swagger"
+	api "github.com/NikolNikolaeva/project_weather/generated/api/weatherapi"
 )
 
+//go:generate mockgen --build_flags=--mod=mod -destination ../generated/go-mocks/services/mock_weather_data_getter.go . WeatherDataGetter
 type WeatherDataGetter interface {
-	GetData(url string) (*swagger.WeatherDTO, error)
+	GetCurrentData(q string, key string) (*api.Current, *api.Location, error)
+	GetForecastData(q string, days int32, key string) (*api.Forecast, *api.Location, error)
 }
 
 type weatherDataGetter struct {
 	client *http.Client
 }
 
-func NewWeatherDataGetter(client *http.Client) WeatherDataGetter {
+func NewWeatherDataRetriever(client *http.Client) WeatherDataGetter {
 	return &weatherDataGetter{
 		client: client,
 	}
 }
 
-func (self *weatherDataGetter) GetData(url string) (*swagger.WeatherDTO, error) {
-	response, err := self.client.Get(url)
+func (self *weatherDataGetter) GetCurrentData(q string, key string) (*api.Current, *api.Location, error) {
+
+	config := api.NewConfiguration()
+	client := api.NewAPIClient(config)
+
+	ctx := context.WithValue(context.Background(), api.ContextAPIKey, api.APIKey{Key: key})
+
+	weather, resp, err := client.APIsApi.RealtimeWeather(ctx, q, nil)
+
 	if err != nil {
-		return nil, err
-	}
-	defer response.Body.Close()
-
-	if response.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("failed to fetch weather data: status code %d", response.StatusCode)
+		return nil, nil, err
 	}
 
-	var weatherData swagger.WeatherDTO
-	if err := json.NewDecoder(response.Body).Decode(&weatherData); err != nil {
-		return nil, fmt.Errorf("failed to parse weather data: %v", err)
+	if resp.StatusCode != http.StatusOK {
+		return nil, nil, fmt.Errorf("Error calling realtime weather: %s", resp.Status)
 	}
 
-	return &weatherData, nil
+	return weather.Current, weather.Location, nil
+}
+
+func (self *weatherDataGetter) GetForecastData(q string, days int32, key string) (*api.Forecast, *api.Location, error) {
+
+	config := api.NewConfiguration()
+	client := api.NewAPIClient(config)
+
+	ctx := context.WithValue(context.Background(), api.ContextAPIKey, api.APIKey{Key: key})
+
+	weather, resp, err := client.APIsApi.ForecastWeather(ctx, q, days, nil)
+
+	if err != nil {
+		return nil, nil, err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, nil, fmt.Errorf("Error calling realtime weather: %s", resp.Status)
+	}
+
+	return weather.Forecast, weather.Location, nil
 }

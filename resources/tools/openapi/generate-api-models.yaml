@@ -1,0 +1,13 @@
+generatorName: go-server
+inputSpec: resources/openapi/api.yaml
+outputDir: generated/api/project-weather
+additionalProperties:
+  packageName: modules
+  enumClassPrefix: true
+  packageVersion: 1.0.0
+  hideGenerationTimestamp: true
+  featureCORS: true
+  outputAsLibrary: true
+  sourceFolder: rest
+  router: mux
+  onlyInterfaces: true

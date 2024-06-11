@@ -1,0 +1,53 @@
+#!/bin/bash
+
+source "$(dirname "${0}")/commons.lib"
+
+readonly PROJECT_PATH="$(realpath "$(dirname "${0}")/../..")"
+readonly PROJECT_NAME="$(basename "${PROJECT_PATH}")"
+
+readonly OPENAPI_VERSION="7.6.0"
+readonly OPENAPI_JAR_DOWNLOAD_PATH="/var/tmp/openapi-generator-cli.${OPENAPI_VERSION}.jar"
+readonly OPENAPI_JAR_DOWNLOAD_URL="https://repo1.maven.org/maven2/org/openapitools/openapi-generator-cli/${OPENAPI_VERSION}/openapi-generator-cli-${OPENAPI_VERSION}.jar"
+
+function generate() {
+  local project_path="${1}"; shift
+
+  _ensure_installed "java" "java" "default-jre"
+  _download_file "${OPENAPI_JAR_DOWNLOAD_URL}" "${OPENAPI_JAR_DOWNLOAD_PATH}"
+  java -jar "${OPENAPI_JAR_DOWNLOAD_PATH}" batch --clean --fail-fast --root-dir "${project_path}" -- "${@}"
+}
+
+function generate_db_daos() {
+  _assert_success "${PROJECT_PATH}" rm -rf "generated/dao"
+  _assert_success "${PROJECT_PATH}" go run -mod=mod resources/tools/gorm/main.go
+}
+
+function generate_gomocks() {
+  _assert_success "${PROJECT_PATH}" rm -rf "generated/go-mocks"
+  _assert_success "${PROJECT_PATH}" go install -mod=mod go.uber.org/mock/mockgen
+  _assert_success "${PROJECT_PATH}" go generate -mod=mod ./...
+}
+
+function generate_api_models() {
+  local files_to_prune=( ".openapi-generator" "api" "docs" "test" ".gitignore" ".openapi-generator-ignore" ".travis.yml" "git_push.sh" "go.mod" "go.sum" "README.md" )
+
+  _assert_success "${PROJECT_PATH}" rm -rf "generated/api/project-weather"
+  _assert_success "${PROJECT_PATH}" "generate" "${PROJECT_PATH}" "resources/tools/openapi/generate-api-models.yaml"
+  _assert_success "${PROJECT_PATH}" goimports -w "generated/api/project-weather"
+  _assert_success "${PROJECT_PATH}/generated/api/project-weather" rm -rf "${files_to_prune[@]}"
+}
+
+function main() {
+  local run_all="$(_read_cmd_flag "run-all" "true" "${@}")"
+  local generate_resources="$(_read_cmd_flag "generate" "${run_all}" "${@}")"
+
+  if _is_truthy "${generate_resources}"; then
+    _info "Generating resources for project '${PROJECT_NAME}'..."
+
+    generate_db_daos
+    generate_gomocks
+    generate_api_models
+  fi
+}
+
+main "${@}"
