@@ -5,16 +5,17 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/NikolNikolaeva/project_weather/config"
+	api "github.com/NikolNikolaeva/project_weather/generated/api/project-weather/rest"
+	"github.com/NikolNikolaeva/project_weather/utils"
+
 	"github.com/gorilla/mux"
 	"go.uber.org/fx"
 
-	"github.com/NikolNikolaeva/project_weather/config"
-	api "github.com/NikolNikolaeva/project_weather/generated/api/project-weather/rest"
 	"github.com/NikolNikolaeva/project_weather/generated/dao"
 	"github.com/NikolNikolaeva/project_weather/repositories"
 	"github.com/NikolNikolaeva/project_weather/resources"
 	"github.com/NikolNikolaeva/project_weather/services"
-	"github.com/NikolNikolaeva/project_weather/utils"
 )
 
 var FXModule_HTTPServer = fx.Module(
@@ -24,11 +25,11 @@ var FXModule_HTTPServer = fx.Module(
 		createCityRepo,
 		createCityController,
 		createForecastRepo,
-		createForecastController,
+		//createForecastController,
 		createHTTPClient,
 		createWeatherHandler,
 		createWeatherDataRetriever,
-		createWeatherController,
+		//createWeatherController,
 		createHttpServer,
 		createConverter,
 		createMuxRouter,
@@ -39,11 +40,11 @@ var FXModule_HTTPServer = fx.Module(
 	),
 )
 
-func createAPIRoutes(cities *api.CityAPIController, forecasts *api.ForecastAPIController, weather *api.WeatherAPIController) api.Routes {
+func createAPIRoutes(cities *api.CityAPIController) api.Routes {
 	return utils.Merge(
 		cities.Routes(),
-		weather.Routes(),
-		forecasts.Routes(),
+		//weather.Routes(),
+		//forecasts.Routes(),
 	)
 }
 
@@ -71,13 +72,13 @@ func createCityController(db repositories.CityRepo, convert resources.ConverterI
 	return api.NewCityAPIController(services.NewCityAPIService(db, convert))
 }
 
-func createForecastController(db repositories.ForecastRepo, convert resources.ConverterI) *api.ForecastAPIController {
-	return api.NewForecastAPIController(services.NewForecastAPIService(db, convert))
-}
-
-func createWeatherController(handler services.WeatherHandler, config *config.ApplicationConfiguration) *api.WeatherAPIController {
-	return api.NewWeatherAPIController(services.NewWeatherAPIService(handler, config))
-}
+//func createForecastController(db repositories.ForecastRepo, convert resources.ConverterI) *api.ForecastAPIController {
+//	return api.NewForecastAPIController(services.NewForecastAPIService(db, convert))
+//}
+//
+//func createWeatherController(handler services.WeatherHandler, config *config.ApplicationConfiguration) *api.WeatherAPIController {
+//	return api.NewWeatherAPIController(services.NewWeatherAPIService(handler, config))
+//}
 
 func createMuxRouter() *mux.Router {
 	return mux.NewRouter()
