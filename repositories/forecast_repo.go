@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"errors"
+	"time"
 
 	"gorm.io/gorm"
 
@@ -16,6 +17,9 @@ type ForecastRepo interface {
 	Update(id string, forecast *model.Forecast) error
 	Delete(id string) error
 	FindAll() ([]*model.Forecast, error)
+	FindByCityId(cityId string) ([]*model.Forecast, error)
+	FindByCityIdAndDate(cityId string, date time.Time) (*model.Forecast, error)
+	DeleteByCityId(citId string) error
 }
 
 type forecastRepo struct {
@@ -86,10 +90,41 @@ func (self *forecastRepo) Delete(id string) error {
 	return nil
 }
 
+func (self *forecastRepo) DeleteByCityId(citId string) error {
+	forecasts, err := self.q.Forecast.Where(
+		self.q.Forecast.CityID.Eq(citId),
+	).Find()
+	if err != nil {
+		return err
+	}
+
+	for _, forecast := range forecasts {
+		_, err := self.q.Forecast.Delete(forecast)
+		if err != nil {
+			return nil
+		}
+	}
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (self *forecastRepo) FindAll() ([]*model.Forecast, error) {
 	forecasts, err := self.q.Forecast.Find()
 	if err != nil {
 		return nil, err
 	}
 	return forecasts, nil
+}
+
+func (self *forecastRepo) FindByCityIdAndDate(cityId string, date time.Time) (*model.Forecast, error) {
+	forecast, err := self.q.Forecast.Where(
+		self.q.Forecast.CityID.Eq(cityId),
+		self.q.Forecast.ForecastDate.Eq(date),
+	).First()
+	if err != nil {
+		return nil, err
+	}
+	return forecast, nil
 }

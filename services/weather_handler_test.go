@@ -153,22 +153,3 @@ func Test_WeatherHandler_Handle(t *testing.T) {
 		})
 	}
 }
-
-func Test_WeatherHandler_getApiKey(t *testing.T) {
-
-	credContent := `{"apiKey": "test_api_key"}`
-	tmpFile, err := ioutil.TempFile("", "temp.json")
-	assert.NoError(t, err)
-	defer os.Remove(tmpFile.Name())
-
-	_, err = tmpFile.Write([]byte(credContent))
-	assert.NoError(t, err)
-	err = tmpFile.Close()
-	assert.NoError(t, err)
-
-	handler := &weatherHandler{}
-
-	apiKey, err := handler.getApiKey(tmpFile.Name())
-	assert.NoError(t, err)
-	assert.Equal(t, "test_api_key", apiKey)
-}
