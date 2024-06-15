@@ -1,12 +1,10 @@
 package services
 
 import (
-	"encoding/json"
 	"fmt"
-	"io"
-
-	"os"
 	"time"
+
+	"github.com/NikolNikolaeva/project_weather/resources"
 
 	api "github.com/NikolNikolaeva/project_weather/generated/api/weatherapi"
 	"github.com/NikolNikolaeva/project_weather/generated/dao/model"
@@ -17,10 +15,6 @@ const (
 	templateDate        = "2006-01-02"
 	templateDateAndTime = "2006-01-02 15:04 "
 )
-
-type Cred struct {
-	ApiKey string `json:"apiKey"`
-}
 
 type WeatherHandler interface {
 	HandleCurrantData(q string, cred string) (*api.Current, error)
@@ -41,31 +35,8 @@ func NewWeatherHandler(cityRepo repositories.CityRepo, foreCastRepo repositories
 	}
 }
 
-func (self *weatherHandler) getApiKey(credFile string) (string, error) {
-	jsonFile, err := os.OpenFile(credFile, os.O_RDONLY, os.ModePerm)
-
-	if err != nil {
-		return "", err
-	}
-	defer func() { _ = jsonFile.Close() }()
-
-	byteValue, err := io.ReadAll(jsonFile)
-	if err != nil {
-		return "", err
-	}
-
-	var cred Cred
-	err = json.Unmarshal(byteValue, &cred)
-
-	if err != nil {
-		return "", err
-	}
-
-	return cred.ApiKey, nil
-}
-
 func (self *weatherHandler) HandleCurrantData(q string, cred string) (*api.Current, error) {
-	key, err := self.getApiKey(cred)
+	key, err := resources.GetApiKey(cred)
 
 	if err != nil {
 		return nil, err
@@ -84,7 +55,7 @@ func (self *weatherHandler) HandleCurrantData(q string, cred string) (*api.Curre
 
 	data, err := self.cityRepo.RegisterCity(city)
 
-	if err != nil || data == nil {
+	if (err.Error() != ("City already exists") && err != nil) || data == nil {
 		return nil, err
 	}
 
@@ -94,7 +65,7 @@ func (self *weatherHandler) HandleCurrantData(q string, cred string) (*api.Curre
 }
 
 func (self *weatherHandler) HandleForecast(q string, days int32, cred string) (*api.Forecast, error) {
-	key, err := self.getApiKey(cred)
+	key, err := resources.GetApiKey(cred)
 	if err != nil {
 		return nil, err
 	}
@@ -110,8 +81,17 @@ func (self *weatherHandler) HandleForecast(q string, days int32, cred string) (*
 		Longitude: fmt.Sprintf("%f", location.Lon),
 	}
 
-	city, err = self.cityRepo.RegisterCity(city)
+	registerCity, err := self.cityRepo.RegisterCity(city)
 
+	if err.Error() == "City already exists" {
+		city, err = self.cityRepo.UpdateCityByID(registerCity.ID, city)
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	err = self.forecastRepo.DeleteByCityId(city.ID)
 	if err != nil {
 		return nil, err
 	}

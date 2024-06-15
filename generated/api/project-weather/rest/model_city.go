@@ -17,9 +17,9 @@ type City struct {
 
 	Country string `json:"country"`
 
-	Longitude string `json:"longitude"`
+	Longitude string `json:"longitude,omitempty"`
 
-	Latitude string `json:"latitude"`
+	Latitude string `json:"latitude,omitempty"`
 
 	CreatedAt int64 `json:"createdAt,omitempty"`
 
@@ -29,10 +29,8 @@ type City struct {
 // AssertCityRequired checks if the required fields are not zero-ed
 func AssertCityRequired(obj City) error {
 	elements := map[string]interface{}{
-		"name":      obj.Name,
-		"country":   obj.Country,
-		"longitude": obj.Longitude,
-		"latitude":  obj.Latitude,
+		"name":    obj.Name,
+		"country": obj.Country,
 	}
 	for name, el := range elements {
 		if isZero := IsZeroValue(el); isZero {

@@ -42,6 +42,7 @@ func (self *weatherDataGetter) GetCurrentData(q string, key string) (*api.Curren
 	}
 
 	return weather.Current, weather.Location, nil
+
 }
 
 func (self *weatherDataGetter) GetForecastData(q string, days int32, key string) (*api.Forecast, *api.Location, error) {

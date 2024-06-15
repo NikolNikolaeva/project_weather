@@ -65,7 +65,7 @@ func (self *cityRepo) RegisterCity(city *model.City) (*model.City, error) {
 	).First()
 
 	if err == nil && existCity.ID != "" {
-		return existCity, err
+		return existCity, errors.New("City already exists")
 	}
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		err = self.q.City.Create(city)

@@ -11,9 +11,6 @@
 package modules
 
 import (
-	"encoding/json"
-	"errors"
-	"io"
 	"net/http"
 	"strings"
 
@@ -53,133 +50,37 @@ func NewForecastAPIController(s ForecastAPIServicer, opts ...ForecastAPIOption) 
 // Routes returns all the api routes for the ForecastAPIController
 func (c *ForecastAPIController) Routes() Routes {
 	return Routes{
-		"CreateForecast": Route{
-			strings.ToUpper("Post"),
-			"/api/forecasts",
-			c.CreateForecast,
-		},
-		"DeleteForecastById": Route{
-			strings.ToUpper("Delete"),
-			"/api/forecasts/{id}",
-			c.DeleteForecastById,
-		},
-		"GetAllForecasts": Route{
+		"GetForecastsByCityIdAndPeriod": Route{
 			strings.ToUpper("Get"),
-			"/api/forecasts",
-			c.GetAllForecasts,
-		},
-		"GetForecastById": Route{
-			strings.ToUpper("Get"),
-			"/api/forecasts/{id}",
-			c.GetForecastById,
-		},
-		"UpdateForecast": Route{
-			strings.ToUpper("Put"),
-			"/api/forecasts/{id}",
-			c.UpdateForecast,
+			"/api/cities/{id}/forecasts",
+			c.GetForecastsByCityIdAndPeriod,
 		},
 	}
 }
 
-// CreateForecast -
-func (c *ForecastAPIController) CreateForecast(w http.ResponseWriter, r *http.Request) {
-	forecastParam := Forecast{}
-	d := json.NewDecoder(r.Body)
-	d.DisallowUnknownFields()
-	if err := d.Decode(&forecastParam); err != nil && !errors.Is(err, io.EOF) {
+// GetForecastsByCityIdAndPeriod -
+func (c *ForecastAPIController) GetForecastsByCityIdAndPeriod(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	query, err := parseQuery(r.URL.RawQuery)
+	if err != nil {
 		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
 		return
 	}
-	if err := AssertForecastRequired(forecastParam); err != nil {
-		c.errorHandler(w, r, err, nil)
-		return
-	}
-	if err := AssertForecastConstraints(forecastParam); err != nil {
-		c.errorHandler(w, r, err, nil)
-		return
-	}
-	result, err := c.service.CreateForecast(r.Context(), forecastParam)
-	// If an error occurred, encode the error with the status code
-	if err != nil {
-		c.errorHandler(w, r, err, &result)
-		return
-	}
-	// If no error, encode the body and the result code
-	_ = EncodeJSONResponse(result.Body, &result.Code, w)
-}
-
-// DeleteForecastById -
-func (c *ForecastAPIController) DeleteForecastById(w http.ResponseWriter, r *http.Request) {
-	params := mux.Vars(r)
 	idParam := params["id"]
 	if idParam == "" {
 		c.errorHandler(w, r, &RequiredError{"id"}, nil)
 		return
 	}
-	result, err := c.service.DeleteForecastById(r.Context(), idParam)
-	// If an error occurred, encode the error with the status code
-	if err != nil {
-		c.errorHandler(w, r, err, &result)
-		return
-	}
-	// If no error, encode the body and the result code
-	_ = EncodeJSONResponse(result.Body, &result.Code, w)
-}
+	var periodParam string
+	if query.Has("period") {
+		param := query.Get("period")
 
-// GetAllForecasts -
-func (c *ForecastAPIController) GetAllForecasts(w http.ResponseWriter, r *http.Request) {
-	result, err := c.service.GetAllForecasts(r.Context())
-	// If an error occurred, encode the error with the status code
-	if err != nil {
-		c.errorHandler(w, r, err, &result)
+		periodParam = param
+	} else {
+		c.errorHandler(w, r, &RequiredError{Field: "period"}, nil)
 		return
 	}
-	// If no error, encode the body and the result code
-	_ = EncodeJSONResponse(result.Body, &result.Code, w)
-}
-
-// GetForecastById -
-func (c *ForecastAPIController) GetForecastById(w http.ResponseWriter, r *http.Request) {
-	params := mux.Vars(r)
-	idParam := params["id"]
-	if idParam == "" {
-		c.errorHandler(w, r, &RequiredError{"id"}, nil)
-		return
-	}
-	result, err := c.service.GetForecastById(r.Context(), idParam)
-	// If an error occurred, encode the error with the status code
-	if err != nil {
-		c.errorHandler(w, r, err, &result)
-		return
-	}
-	// If no error, encode the body and the result code
-	_ = EncodeJSONResponse(result.Body, &result.Code, w)
-}
-
-// UpdateForecast -
-func (c *ForecastAPIController) UpdateForecast(w http.ResponseWriter, r *http.Request) {
-	params := mux.Vars(r)
-	idParam := params["id"]
-	if idParam == "" {
-		c.errorHandler(w, r, &RequiredError{"id"}, nil)
-		return
-	}
-	forecastParam := Forecast{}
-	d := json.NewDecoder(r.Body)
-	d.DisallowUnknownFields()
-	if err := d.Decode(&forecastParam); err != nil && !errors.Is(err, io.EOF) {
-		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
-		return
-	}
-	if err := AssertForecastRequired(forecastParam); err != nil {
-		c.errorHandler(w, r, err, nil)
-		return
-	}
-	if err := AssertForecastConstraints(forecastParam); err != nil {
-		c.errorHandler(w, r, err, nil)
-		return
-	}
-	result, err := c.service.UpdateForecast(r.Context(), idParam, forecastParam)
+	result, err := c.service.GetForecastsByCityIdAndPeriod(r.Context(), idParam, periodParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)

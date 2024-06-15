@@ -30,18 +30,7 @@ type CityAPIRouter interface {
 // The ForecastAPIRouter implementation should parse necessary information from the http request,
 // pass the data to a ForecastAPIServicer to perform the required actions, then write the service results to the http response.
 type ForecastAPIRouter interface {
-	CreateForecast(http.ResponseWriter, *http.Request)
-	DeleteForecastById(http.ResponseWriter, *http.Request)
-	GetAllForecasts(http.ResponseWriter, *http.Request)
-	GetForecastById(http.ResponseWriter, *http.Request)
-	UpdateForecast(http.ResponseWriter, *http.Request)
-}
-
-// WeatherAPIRouter defines the required methods for binding the api requests to a responses for the WeatherAPI
-// The WeatherAPIRouter implementation should parse necessary information from the http request,
-// pass the data to a WeatherAPIServicer to perform the required actions, then write the service results to the http response.
-type WeatherAPIRouter interface {
-	GetWeatherByCity(http.ResponseWriter, *http.Request)
+	GetForecastsByCityIdAndPeriod(http.ResponseWriter, *http.Request)
 }
 
 // CityAPIServicer defines the api actions for the CityAPI service
@@ -61,17 +50,5 @@ type CityAPIServicer interface {
 // while the service implementation can be ignored with the .openapi-generator-ignore file
 // and updated with the logic required for the API.
 type ForecastAPIServicer interface {
-	CreateForecast(context.Context, Forecast) (ImplResponse, error)
-	DeleteForecastById(context.Context, string) (ImplResponse, error)
-	GetAllForecasts(context.Context) (ImplResponse, error)
-	GetForecastById(context.Context, string) (ImplResponse, error)
-	UpdateForecast(context.Context, string, Forecast) (ImplResponse, error)
-}
-
-// WeatherAPIServicer defines the api actions for the WeatherAPI service
-// This interface intended to stay up to date with the openapi yaml used to generate it,
-// while the service implementation can be ignored with the .openapi-generator-ignore file
-// and updated with the logic required for the API.
-type WeatherAPIServicer interface {
-	GetWeatherByCity(context.Context, string, string) (ImplResponse, error)
+	GetForecastsByCityIdAndPeriod(context.Context, string, string) (ImplResponse, error)
 }

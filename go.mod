@@ -13,10 +13,10 @@ require (
 	go.uber.org/fx v1.22.0
 	go.uber.org/mock v0.4.0
 	golang.org/x/oauth2 v0.21.0
-	gorm.io/driver/postgres v1.5.7
+	gorm.io/driver/postgres v1.5.9
 	gorm.io/gen v0.3.26
 	gorm.io/gorm v1.25.10
-	gorm.io/plugin/dbresolver v1.5.1
+	gorm.io/plugin/dbresolver v1.5.2
 )
 
 require (
@@ -34,8 +34,8 @@ require (
 	golang.org/x/mod v0.18.0 // indirect
 	golang.org/x/tools v0.22.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-	gorm.io/datatypes v1.2.0 // indirect
-	gorm.io/driver/mysql v1.5.6 // indirect
+	gorm.io/datatypes v1.2.1 // indirect
+	gorm.io/driver/mysql v1.5.7 // indirect
 	gorm.io/hints v1.1.2 // indirect
 )
 

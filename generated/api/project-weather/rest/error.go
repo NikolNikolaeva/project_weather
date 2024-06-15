@@ -14,7 +14,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"runtime/debug"
 )
 
 var (
@@ -46,7 +45,6 @@ type RequiredError struct {
 }
 
 func (e *RequiredError) Error() string {
-	debug.PrintStack()
 	return fmt.Sprintf("required field '%s' is zero value.", e.Field)
 }
 
