@@ -11,7 +11,6 @@ package mock_repositories
 
 import (
 	reflect "reflect"
-	time "time"
 
 	gomock "go.uber.org/mock/gomock"
 
@@ -69,18 +68,18 @@ func (mr *MockForecastRepoMockRecorder) Delete(arg0 any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockForecastRepo)(nil).Delete), arg0)
 }
 
-// DeleteByCityId mocks base method.
-func (m *MockForecastRepo) DeleteByCityId(arg0 string) error {
+// DeleteByPastDate mocks base method.
+func (m *MockForecastRepo) DeleteByPastDate() error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteByCityId", arg0)
+	ret := m.ctrl.Call(m, "DeleteByPastDate")
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// DeleteByCityId indicates an expected call of DeleteByCityId.
-func (mr *MockForecastRepoMockRecorder) DeleteByCityId(arg0 any) *gomock.Call {
+// DeleteByPastDate indicates an expected call of DeleteByPastDate.
+func (mr *MockForecastRepoMockRecorder) DeleteByPastDate() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteByCityId", reflect.TypeOf((*MockForecastRepo)(nil).DeleteByCityId), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteByPastDate", reflect.TypeOf((*MockForecastRepo)(nil).DeleteByPastDate))
 }
 
 // FindAll mocks base method.
@@ -113,19 +112,19 @@ func (mr *MockForecastRepoMockRecorder) FindByCityId(arg0 any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindByCityId", reflect.TypeOf((*MockForecastRepo)(nil).FindByCityId), arg0)
 }
 
-// FindByCityIdAndDate mocks base method.
-func (m *MockForecastRepo) FindByCityIdAndDate(arg0 string, arg1 time.Time) (*model.Forecast, error) {
+// FindByCityIdAndPeriodDays mocks base method.
+func (m *MockForecastRepo) FindByCityIdAndPeriodDays(arg0 string, arg1 int) ([]*model.Forecast, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FindByCityIdAndDate", arg0, arg1)
-	ret0, _ := ret[0].(*model.Forecast)
+	ret := m.ctrl.Call(m, "FindByCityIdAndPeriodDays", arg0, arg1)
+	ret0, _ := ret[0].([]*model.Forecast)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// FindByCityIdAndDate indicates an expected call of FindByCityIdAndDate.
-func (mr *MockForecastRepoMockRecorder) FindByCityIdAndDate(arg0, arg1 any) *gomock.Call {
+// FindByCityIdAndPeriodDays indicates an expected call of FindByCityIdAndPeriodDays.
+func (mr *MockForecastRepoMockRecorder) FindByCityIdAndPeriodDays(arg0, arg1 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindByCityIdAndDate", reflect.TypeOf((*MockForecastRepo)(nil).FindByCityIdAndDate), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindByCityIdAndPeriodDays", reflect.TypeOf((*MockForecastRepo)(nil).FindByCityIdAndPeriodDays), arg0, arg1)
 }
 
 // FindByID mocks base method.

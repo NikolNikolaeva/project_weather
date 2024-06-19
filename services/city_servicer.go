@@ -2,8 +2,11 @@ package services
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
+
+	"github.com/NikolNikolaeva/project_weather/config"
 
 	api "github.com/NikolNikolaeva/project_weather/generated/api/project-weather/rest"
 	"github.com/NikolNikolaeva/project_weather/repositories"
@@ -16,19 +19,23 @@ import (
 type CityAPIService struct {
 	DB      repositories.CityRepo
 	Convert resources.ConverterI
+	handler WeatherAPIClient
+	config  *config.ApplicationConfiguration
 }
 
-// NewCityAPIService creates a default api service
-func NewCityAPIService(db repositories.CityRepo, convert resources.ConverterI) api.CityAPIServicer {
+// NewAPIService creates a default api service
+func NewAPIService(db repositories.CityRepo, convert resources.ConverterI, handler WeatherAPIClient, config *config.ApplicationConfiguration) api.CityAPIServicer {
 	return &CityAPIService{
 		DB:      db,
 		Convert: convert,
+		handler: handler,
+		config:  config,
 	}
 }
 
-// DeleteCityById -
-func (s *CityAPIService) DeleteCityById(ctx context.Context, id string) (api.ImplResponse, error) {
-	city, err := s.DB.FindCityByID(id)
+// DeleteById -
+func (s *CityAPIService) DeleteById(ctx context.Context, id string) (api.ImplResponse, error) {
+	city, err := s.DB.FindByID(id)
 
 	if err != nil {
 		return api.Response(http.StatusNotFound, "City not found"), err
@@ -37,19 +44,19 @@ func (s *CityAPIService) DeleteCityById(ctx context.Context, id string) (api.Imp
 	if id == "" {
 		return api.Response(http.StatusBadRequest, "id is required"), nil
 	}
-	err = s.DB.DeleteCityByID(id)
+	_, err = s.DB.DeleteByID(id)
 	if err != nil {
 		return api.Response(http.StatusInternalServerError, "City not found"), err
 	}
 
-	cityApi := s.Convert.ConvertModelCityToApiCity(city) //Todo
+	cityApi := s.Convert.ConvertModelCityToApiCity(city)
 
 	return api.Response(http.StatusOK, cityApi), nil
 }
 
-// GetAllCities -
-func (s *CityAPIService) GetAllCities(ctx context.Context) (api.ImplResponse, error) {
-	cities, err := s.DB.GetAllCity()
+// GetAll -
+func (s *CityAPIService) GetAll(ctx context.Context) (api.ImplResponse, error) {
+	cities, err := s.DB.GetAll()
 
 	if err != nil {
 		return api.Response(http.StatusInternalServerError, nil), err
@@ -57,54 +64,63 @@ func (s *CityAPIService) GetAllCities(ctx context.Context) (api.ImplResponse, er
 
 	var citiesApi []*api.City
 	for _, city := range cities {
-		cityApi := s.Convert.ConvertModelCityToApiCity(city) //Todo
+		cityApi := s.Convert.ConvertModelCityToApiCity(city)
 		citiesApi = append(citiesApi, cityApi)
 	}
 
 	return api.Response(http.StatusOK, citiesApi), nil
 }
 
-// GetCityById -
-func (s *CityAPIService) GetCityById(ctx context.Context, id string) (api.ImplResponse, error) {
+// GetById -
+func (s *CityAPIService) GetById(ctx context.Context, id string) (api.ImplResponse, error) {
 	if id == "" {
 		return api.Response(http.StatusUnprocessableEntity, "id is required"), nil
 	}
 
-	city, err := s.DB.FindCityByID(id)
+	city, err := s.DB.FindByID(id)
 	if err != nil {
 		log.Print(err.Error())
 		return api.Response(http.StatusInternalServerError, err.Error()), nil
 	}
 
-	cityApi := s.Convert.ConvertModelCityToApiCity(city) //Todo
+	cityApi := s.Convert.ConvertModelCityToApiCity(city)
 
 	return api.Response(http.StatusOK, cityApi), nil
 }
 
-// RegisterCity -
-func (s *CityAPIService) RegisterCity(ctx context.Context, city api.City) (api.ImplResponse, error) {
-	cityModel := s.Convert.ConvertApiCityToModelCity(&city) //Todo
+// Register -
+func (s *CityAPIService) Register(ctx context.Context, city api.City) (api.ImplResponse, error) {
+	cityModel := s.Convert.ConvertApiCityToModelCity(&city)
 
-	cityNew, err := s.DB.RegisterCity(cityModel)
+	location := s.handler.HandleCityData(cityModel.Name, s.config.CredFile)
+
+	cityModel.Latitude = fmt.Sprintf("%f", location.Lat)
+	cityModel.Longitude = fmt.Sprintf("%f", location.Lon)
+
+	cityNew, err := s.DB.Register(cityModel)
 	if err != nil {
 		return api.Response(http.StatusInternalServerError, nil), err
 	}
 
-	cityApi := s.Convert.ConvertModelCityToApiCity(cityNew) //Todo
+	go func() {
+		_, _ = s.handler.HandleForecast(cityModel.Name, 30, s.config.CredFile)
+	}()
+
+	cityApi := s.Convert.ConvertModelCityToApiCity(cityNew)
 
 	return api.Response(http.StatusCreated, cityApi), nil
 }
 
-// UpdateCityById -
-func (s *CityAPIService) UpdateCityById(ctx context.Context, id string, city api.City) (api.ImplResponse, error) {
-	cityModel := s.Convert.ConvertApiCityToModelCity(&city) //Todo
+// UpdateByID -
+func (s *CityAPIService) UpdateByID(ctx context.Context, id string, city api.City) (api.ImplResponse, error) {
+	cityModel := s.Convert.ConvertApiCityToModelCity(&city)
 
-	updatedCity, err := s.DB.UpdateCityByID(id, cityModel)
+	updatedCity, err := s.DB.UpdateByID(id, cityModel)
 	if err != nil {
 		return api.Response(http.StatusInternalServerError, nil), err
 	}
 
-	cityApi := s.Convert.ConvertModelCityToApiCity(updatedCity) //Todo
+	cityApi := s.Convert.ConvertModelCityToApiCity(updatedCity)
 
 	return api.Response(http.StatusOK, cityApi), nil
 }

@@ -19,18 +19,18 @@ import (
 // The CityAPIRouter implementation should parse necessary information from the http request,
 // pass the data to a CityAPIServicer to perform the required actions, then write the service results to the http response.
 type CityAPIRouter interface {
-	DeleteCityById(http.ResponseWriter, *http.Request)
-	GetAllCities(http.ResponseWriter, *http.Request)
-	GetCityById(http.ResponseWriter, *http.Request)
-	RegisterCity(http.ResponseWriter, *http.Request)
-	UpdateCityById(http.ResponseWriter, *http.Request)
+	DeleteById(http.ResponseWriter, *http.Request)
+	GetAll(http.ResponseWriter, *http.Request)
+	GetById(http.ResponseWriter, *http.Request)
+	Register(http.ResponseWriter, *http.Request)
+	UpdateByID(http.ResponseWriter, *http.Request)
 }
 
 // ForecastAPIRouter defines the required methods for binding the api requests to a responses for the ForecastAPI
 // The ForecastAPIRouter implementation should parse necessary information from the http request,
 // pass the data to a ForecastAPIServicer to perform the required actions, then write the service results to the http response.
 type ForecastAPIRouter interface {
-	GetForecastsByCityIdAndPeriod(http.ResponseWriter, *http.Request)
+	GetByCityIdAndPeriod(http.ResponseWriter, *http.Request)
 }
 
 // CityAPIServicer defines the api actions for the CityAPI service
@@ -38,11 +38,11 @@ type ForecastAPIRouter interface {
 // while the service implementation can be ignored with the .openapi-generator-ignore file
 // and updated with the logic required for the API.
 type CityAPIServicer interface {
-	DeleteCityById(context.Context, string) (ImplResponse, error)
-	GetAllCities(context.Context) (ImplResponse, error)
-	GetCityById(context.Context, string) (ImplResponse, error)
-	RegisterCity(context.Context, City) (ImplResponse, error)
-	UpdateCityById(context.Context, string, City) (ImplResponse, error)
+	DeleteById(context.Context, string) (ImplResponse, error)
+	GetAll(context.Context) (ImplResponse, error)
+	GetById(context.Context, string) (ImplResponse, error)
+	Register(context.Context, City) (ImplResponse, error)
+	UpdateByID(context.Context, string, City) (ImplResponse, error)
 }
 
 // ForecastAPIServicer defines the api actions for the ForecastAPI service
@@ -50,5 +50,5 @@ type CityAPIServicer interface {
 // while the service implementation can be ignored with the .openapi-generator-ignore file
 // and updated with the logic required for the API.
 type ForecastAPIServicer interface {
-	GetForecastsByCityIdAndPeriod(context.Context, string, string) (ImplResponse, error)
+	GetByCityIdAndPeriod(context.Context, string, string) (ImplResponse, error)
 }

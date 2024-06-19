@@ -60,7 +60,7 @@ func (self *converter) ConvertApiForecastToModelForecast(forecastModel *api.Fore
 	templateDate := "2006-01-02"
 	day, err := time.Parse(templateDate, forecastModel.ForecastDate)
 	if err != nil {
-		log.Println(err)
+		log.Println("Error parsing forecast date, err: ", err)
 		return nil
 	}
 	return &model.Forecast{

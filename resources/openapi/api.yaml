@@ -12,7 +12,7 @@ paths:
       description: "Return all registered cities"
       tags:
         - city
-      operationId: GetAllCities
+      operationId: GetAll
       responses:
         "200":
           description: Success.
@@ -44,7 +44,7 @@ paths:
       description: "Register a city"
       tags:
         - city
-      operationId: RegisterCity
+      operationId: Register
       requestBody:
         content:
           application/json:
@@ -81,7 +81,7 @@ paths:
       description: "Returns a specific city by id"
       tags:
         - city
-      operationId: GetCityById
+      operationId: GetById
       parameters:
         - name: id
           in: path
@@ -126,7 +126,7 @@ paths:
       description: "Updates a specific city based on its id"
       tags:
         - city
-      operationId: UpdateCityById
+      operationId: UpdateByID
       parameters:
         - name: id
           in: path
@@ -176,7 +176,7 @@ paths:
       description: "Deletes a specific city based on its id"
       tags:
         - city
-      operationId: DeleteCityById
+      operationId: DeleteById
       parameters:
         - name: id
           in: path
@@ -210,7 +210,7 @@ paths:
       description: "Returns forecasts for a specific city and period"
       tags:
         - forecast
-      operationId: GetForecastsByCityIdAndPeriod
+      operationId: GetByCityIdAndPeriod
       parameters:
         - name: id
           in: path
@@ -219,7 +219,6 @@ paths:
             type: string
         - name: period
           in: query
-          required: true
           schema:
             type: string
       responses:

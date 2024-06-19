@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/NikolNikolaeva/project_weather/repositories"
+
 	embeddedpostgres "github.com/fergusstrange/embedded-postgres"
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database"
@@ -28,6 +30,8 @@ var FXModule_Persistence = fx.Module(
 		createDatabaseDriver,
 		createDatabaseConnection,
 		createEntityManagerConnection,
+		createCityRepo,
+		createForecastRepo,
 	),
 
 	fx.Invoke(
@@ -35,6 +39,14 @@ var FXModule_Persistence = fx.Module(
 		performDatabaseSchemaMigration,
 	),
 )
+
+func createCityRepo(q *dao.Query) repositories.CityRepo {
+	return repositories.NewRepo(q)
+}
+
+func createForecastRepo(q *dao.Query) repositories.ForecastRepo {
+	return repositories.NewForecastRepo(q)
+}
 
 func registerEmbeddedPostgresStopHook(lc fx.Lifecycle, embeddedDB *embeddedpostgres.EmbeddedPostgres) {
 	lc.Append(fx.StopHook(func() error {
@@ -71,15 +83,14 @@ func createEmbeddedPostgres(configuration *config.ApplicationConfiguration) (*em
 }
 
 func createEntityManager(db *gorm.DB) *dao.Query {
-	q := dao.Use(db)
-	return q
+	return dao.Use(db)
 }
 
 func createDatabaseMigrator(config *config.ApplicationConfiguration, driver database.Driver) (*migrate.Migrate, error) {
 	return migrate.NewWithDatabaseInstance(fmt.Sprintf("file://%v", "./resources/migrations"), "postgres", driver)
 }
-func performDatabaseSchemaMigration(migrator *migrate.Migrate) error {
 
+func performDatabaseSchemaMigration(migrator *migrate.Migrate) error {
 	_, dirty, _ := migrator.Version()
 	if dirty {
 		_ = migrator.Drop()
@@ -108,6 +119,7 @@ func createDatabaseConnection(config *config.ApplicationConfiguration) (*sql.DB,
 
 	return db, nil
 }
+
 func buildDatabaseURL(config *config.ApplicationConfiguration) string {
 	return fmt.Sprintf(
 		"postgres://%s:%s@%s:%s/%s?sslmode=%s&binary_parameters=%s",

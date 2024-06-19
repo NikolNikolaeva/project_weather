@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"errors"
+	"gorm.io/gorm/clause"
 	"time"
 
 	"gorm.io/gorm"
@@ -14,12 +15,12 @@ import (
 type ForecastRepo interface {
 	FindByID(id string) (*model.Forecast, error)
 	Create(forecast *model.Forecast) error
-	Update(id string, forecast *model.Forecast) error
+	Update(cityId string, forecast *model.Forecast) error
 	Delete(id string) error
 	FindAll() ([]*model.Forecast, error)
 	FindByCityId(cityId string) ([]*model.Forecast, error)
-	FindByCityIdAndDate(cityId string, date time.Time) (*model.Forecast, error)
-	DeleteByCityId(citId string) error
+	FindByCityIdAndPeriodDays(cityId string, days int) ([]*model.Forecast, error)
+	DeleteByPastDate() error
 }
 
 type forecastRepo struct {
@@ -33,98 +34,64 @@ func NewForecastRepo(query *dao.Query) ForecastRepo {
 }
 
 func (self *forecastRepo) FindByID(id string) (*model.Forecast, error) {
-	forecast, err := self.q.Forecast.Where(
+	return self.q.Forecast.Where(
 		self.q.Forecast.ID.Eq(id),
 	).First()
-	if err != nil {
-		return nil, err
-	}
-	return forecast, nil
 }
 
 func (self *forecastRepo) FindByCityId(cityId string) ([]*model.Forecast, error) {
-	forecast, err := self.q.Forecast.Where(
+	return self.q.Forecast.Where(
 		self.q.Forecast.CityID.Eq(cityId),
 	).Find()
-	if err != nil {
-		return nil, err
-	}
-	return forecast, nil
 }
 
 func (self *forecastRepo) Create(forecast *model.Forecast) error {
+	return self.q.Forecast.Clauses(clause.OnConflict{
+		OnConstraint: "unique_Forecast",
+		UpdateAll:    true,
+	}).Create(forecast)
+}
 
-	err := self.q.Forecast.Create(forecast)
+func (self *forecastRepo) Update(cityId string, forecast *model.Forecast) error {
+
+	_, err := self.q.Forecast.Where(
+		self.q.Forecast.CityID.Eq(cityId),
+		self.q.Forecast.ForecastDate.Eq(forecast.ForecastDate)).
+		Updates(forecast) //?
+
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return gorm.ErrRecordNotFound
+	}
+	if errors.Is(err, gorm.ErrForeignKeyViolated) {
+		return gorm.ErrForeignKeyViolated
+	}
 	return err
 }
 
-func (self *forecastRepo) Update(id string, forecast *model.Forecast) error {
+func (self *forecastRepo) Delete(id string) error {
+
 	_, err := self.q.Forecast.Where(
 		self.q.Forecast.ID.Eq(id),
-	).First()
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return errors.New("record not found")
-		}
-		return err
-	}
+	).Delete()
 
-	if _, err := self.q.Forecast.Where(self.q.City.ID.Eq(id)).Updates(forecast); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (self *forecastRepo) Delete(id string) error {
-	forecast, err := self.q.Forecast.Where(
-		self.q.Forecast.ID.Eq(id),
-	).First()
-	if err != nil {
-		return err
-	}
-	_, err = self.q.Forecast.Delete(forecast)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func (self *forecastRepo) DeleteByCityId(citId string) error {
-	forecasts, err := self.q.Forecast.Where(
-		self.q.Forecast.CityID.Eq(citId),
-	).Find()
-	if err != nil {
-		return err
-	}
-
-	for _, forecast := range forecasts {
-		_, err := self.q.Forecast.Delete(forecast)
-		if err != nil {
-			return nil
-		}
-	}
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
 
 func (self *forecastRepo) FindAll() ([]*model.Forecast, error) {
-	forecasts, err := self.q.Forecast.Find()
-	if err != nil {
-		return nil, err
-	}
-	return forecasts, nil
+	return self.q.Forecast.Find()
 }
 
-func (self *forecastRepo) FindByCityIdAndDate(cityId string, date time.Time) (*model.Forecast, error) {
-	forecast, err := self.q.Forecast.Where(
+func (self *forecastRepo) FindByCityIdAndPeriodDays(cityId string, days int) ([]*model.Forecast, error) {
+	return self.q.Forecast.Where(
 		self.q.Forecast.CityID.Eq(cityId),
-		self.q.Forecast.ForecastDate.Eq(date),
-	).First()
-	if err != nil {
-		return nil, err
-	}
-	return forecast, nil
+		self.q.Forecast.ForecastDate.Between(time.Now(), time.Now().AddDate(0, 0, days-1)),
+	).Find()
+
+}
+
+func (self *forecastRepo) DeleteByPastDate() error {
+	_, err := self.q.Forecast.Where(
+		self.q.Forecast.ForecastDate.Lt(time.Now()),
+	).Delete()
+	return err
 }

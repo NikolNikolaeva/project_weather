@@ -2,6 +2,7 @@ package services
 
 import (
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/NikolNikolaeva/project_weather/resources"
@@ -16,26 +17,27 @@ const (
 	templateDateAndTime = "2006-01-02 15:04 "
 )
 
-type WeatherHandler interface {
+type WeatherAPIClient interface {
 	HandleCurrantData(q string, cred string) (*api.Current, error)
 	HandleForecast(q string, days int32, cred string) (*api.Forecast, error)
+	HandleCityData(name string, cred string) *api.Location
 }
 
-type weatherHandler struct {
+type weatherAPIClient struct {
 	cityRepo          repositories.CityRepo
 	forecastRepo      repositories.ForecastRepo
 	weatherDataGetter WeatherDataGetter
 }
 
-func NewWeatherHandler(cityRepo repositories.CityRepo, foreCastRepo repositories.ForecastRepo, weatherDataGetter WeatherDataGetter) WeatherHandler {
-	return &weatherHandler{
+func NewWeatherAPIClient(cityRepo repositories.CityRepo, foreCastRepo repositories.ForecastRepo, weatherDataGetter WeatherDataGetter) WeatherAPIClient {
+	return &weatherAPIClient{
 		cityRepo:          cityRepo,
 		forecastRepo:      foreCastRepo,
 		weatherDataGetter: weatherDataGetter,
 	}
 }
 
-func (self *weatherHandler) HandleCurrantData(q string, cred string) (*api.Current, error) {
+func (self *weatherAPIClient) HandleCurrantData(q string, cred string) (*api.Current, error) {
 	key, err := resources.GetApiKey(cred)
 
 	if err != nil {
@@ -46,16 +48,8 @@ func (self *weatherHandler) HandleCurrantData(q string, cred string) (*api.Curre
 		return nil, err
 	}
 
-	city := &model.City{
-		Name:      location.Name,
-		Country:   location.Country,
-		Latitude:  fmt.Sprintf("%f", location.Lat),
-		Longitude: fmt.Sprintf("%f", location.Lon),
-	}
-
-	data, err := self.cityRepo.RegisterCity(city)
-
-	if (err.Error() != ("City already exists") && err != nil) || data == nil {
+	_, err = self.handleCity(location)
+	if err != nil {
 		return nil, err
 	}
 
@@ -64,34 +58,18 @@ func (self *weatherHandler) HandleCurrantData(q string, cred string) (*api.Curre
 	return output, nil
 }
 
-func (self *weatherHandler) HandleForecast(q string, days int32, cred string) (*api.Forecast, error) {
+func (self *weatherAPIClient) HandleForecast(q string, days int32, cred string) (*api.Forecast, error) {
 	key, err := resources.GetApiKey(cred)
 	if err != nil {
 		return nil, err
 	}
+
 	forecast, location, err := self.weatherDataGetter.GetForecastData(q, days, key)
 	if err != nil {
 		return nil, err
 	}
 
-	city := &model.City{
-		Name:      location.Name,
-		Country:   location.Country,
-		Latitude:  fmt.Sprintf("%f", location.Lat),
-		Longitude: fmt.Sprintf("%f", location.Lon),
-	}
-
-	registerCity, err := self.cityRepo.RegisterCity(city)
-
-	if err.Error() == "City already exists" {
-		city, err = self.cityRepo.UpdateCityByID(registerCity.ID, city)
-	}
-
-	if err != nil {
-		return nil, err
-	}
-
-	err = self.forecastRepo.DeleteByCityId(city.ID)
+	city, err := self.handleCity(location)
 	if err != nil {
 		return nil, err
 	}
@@ -99,19 +77,21 @@ func (self *weatherHandler) HandleForecast(q string, days int32, cred string) (*
 	forecastOutput := api.Forecast{}
 	forecastOutput.Forecastday = []api.ForecastForecastday{}
 	for _, day := range forecast.Forecastday {
-		date, err := time.Parse(templateDate, day.Date)
 
+		date, err := time.Parse(templateDate, day.Date)
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse forecast date: %v", err)
 		}
 
-		forecastToSave := &model.Forecast{
+		forecastToUpdate := &model.Forecast{
 			CityID:       city.ID,
 			ForecastDate: date,
 			Temperature:  fmt.Sprintf("%.1f", day.Day.AvgtempC),
 			Condition:    day.Day.Condition.Text,
 		}
-		err = self.forecastRepo.Create(forecastToSave)
+
+		err = self.forecastRepo.Create(forecastToUpdate)
+
 		if err != nil {
 			return nil, err
 		}
@@ -120,10 +100,31 @@ func (self *weatherHandler) HandleForecast(q string, days int32, cred string) (*
 		forecastOutput.Forecastday = append(forecastOutput.Forecastday, *data)
 	}
 
+	self.deleteOutdatedForecasts()
+
 	return &forecastOutput, nil
 }
 
-func (self *weatherHandler) formCurrentData(current *api.Current) *api.Current {
+func (self *weatherAPIClient) handleCity(location *api.Location) (*model.City, error) {
+
+	city := &model.City{
+		Name:      location.Name,
+		Country:   location.Country,
+		Latitude:  fmt.Sprintf("%f", location.Lat),
+		Longitude: fmt.Sprintf("%f", location.Lon),
+	}
+
+	return self.cityRepo.Register(city)
+}
+
+func (self *weatherAPIClient) deleteOutdatedForecasts() {
+	err := self.forecastRepo.DeleteByPastDate()
+	if err != nil {
+		log.Printf("Error deleting outdated forecasts: %v", err)
+	}
+}
+
+func (self *weatherAPIClient) formCurrentData(current *api.Current) *api.Current {
 
 	outputData := &api.Current{
 		LastUpdated: current.LastUpdated,
@@ -136,7 +137,7 @@ func (self *weatherHandler) formCurrentData(current *api.Current) *api.Current {
 	return outputData
 }
 
-func (self *weatherHandler) formForecastData(data *api.ForecastForecastday) *api.ForecastForecastday {
+func (self *weatherAPIClient) formForecastData(data *api.ForecastForecastday) *api.ForecastForecastday {
 
 	day := &api.ForecastDay{
 		Condition:         data.Day.Condition,
@@ -164,4 +165,13 @@ func (self *weatherHandler) formForecastData(data *api.ForecastForecastday) *api
 	}
 
 	return outputData
+}
+
+func (self *weatherAPIClient) HandleCityData(name string, cred string) *api.Location {
+	key, err := resources.GetApiKey(cred)
+	location, err := self.weatherDataGetter.GetLocation(name, key)
+	if err != nil {
+		log.Printf("Error getting current data: %v", err)
+	}
+	return location
 }

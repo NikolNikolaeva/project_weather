@@ -53,43 +53,43 @@ func NewCityAPIController(s CityAPIServicer, opts ...CityAPIOption) *CityAPICont
 // Routes returns all the api routes for the CityAPIController
 func (c *CityAPIController) Routes() Routes {
 	return Routes{
-		"DeleteCityById": Route{
+		"DeleteById": Route{
 			strings.ToUpper("Delete"),
 			"/api/cities/{id}",
-			c.DeleteCityById,
+			c.DeleteById,
 		},
-		"GetAllCities": Route{
+		"GetAll": Route{
 			strings.ToUpper("Get"),
 			"/api/cities",
-			c.GetAllCities,
+			c.GetAll,
 		},
-		"GetCityById": Route{
+		"GetById": Route{
 			strings.ToUpper("Get"),
 			"/api/cities/{id}",
-			c.GetCityById,
+			c.GetById,
 		},
-		"RegisterCity": Route{
+		"Register": Route{
 			strings.ToUpper("Post"),
 			"/api/cities",
-			c.RegisterCity,
+			c.Register,
 		},
-		"UpdateCityById": Route{
+		"UpdateByID": Route{
 			strings.ToUpper("Put"),
 			"/api/cities/{id}",
-			c.UpdateCityById,
+			c.UpdateByID,
 		},
 	}
 }
 
-// DeleteCityById -
-func (c *CityAPIController) DeleteCityById(w http.ResponseWriter, r *http.Request) {
+// DeleteById -
+func (c *CityAPIController) DeleteById(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	idParam := params["id"]
 	if idParam == "" {
 		c.errorHandler(w, r, &RequiredError{"id"}, nil)
 		return
 	}
-	result, err := c.service.DeleteCityById(r.Context(), idParam)
+	result, err := c.service.DeleteById(r.Context(), idParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)
@@ -99,9 +99,9 @@ func (c *CityAPIController) DeleteCityById(w http.ResponseWriter, r *http.Reques
 	_ = EncodeJSONResponse(result.Body, &result.Code, w)
 }
 
-// GetAllCities -
-func (c *CityAPIController) GetAllCities(w http.ResponseWriter, r *http.Request) {
-	result, err := c.service.GetAllCities(r.Context())
+// GetAll -
+func (c *CityAPIController) GetAll(w http.ResponseWriter, r *http.Request) {
+	result, err := c.service.GetAll(r.Context())
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)
@@ -111,15 +111,15 @@ func (c *CityAPIController) GetAllCities(w http.ResponseWriter, r *http.Request)
 	_ = EncodeJSONResponse(result.Body, &result.Code, w)
 }
 
-// GetCityById -
-func (c *CityAPIController) GetCityById(w http.ResponseWriter, r *http.Request) {
+// GetById -
+func (c *CityAPIController) GetById(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	idParam := params["id"]
 	if idParam == "" {
 		c.errorHandler(w, r, &RequiredError{"id"}, nil)
 		return
 	}
-	result, err := c.service.GetCityById(r.Context(), idParam)
+	result, err := c.service.GetById(r.Context(), idParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)
@@ -129,8 +129,8 @@ func (c *CityAPIController) GetCityById(w http.ResponseWriter, r *http.Request) 
 	_ = EncodeJSONResponse(result.Body, &result.Code, w)
 }
 
-// RegisterCity -
-func (c *CityAPIController) RegisterCity(w http.ResponseWriter, r *http.Request) {
+// Register -
+func (c *CityAPIController) Register(w http.ResponseWriter, r *http.Request) {
 	cityParam := City{}
 	d := json.NewDecoder(r.Body)
 	d.DisallowUnknownFields()
@@ -146,7 +146,7 @@ func (c *CityAPIController) RegisterCity(w http.ResponseWriter, r *http.Request)
 		c.errorHandler(w, r, err, nil)
 		return
 	}
-	result, err := c.service.RegisterCity(r.Context(), cityParam)
+	result, err := c.service.Register(r.Context(), cityParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)
@@ -156,8 +156,8 @@ func (c *CityAPIController) RegisterCity(w http.ResponseWriter, r *http.Request)
 	_ = EncodeJSONResponse(result.Body, &result.Code, w)
 }
 
-// UpdateCityById -
-func (c *CityAPIController) UpdateCityById(w http.ResponseWriter, r *http.Request) {
+// UpdateByID -
+func (c *CityAPIController) UpdateByID(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	idParam := params["id"]
 	if idParam == "" {
@@ -179,7 +179,7 @@ func (c *CityAPIController) UpdateCityById(w http.ResponseWriter, r *http.Reques
 		c.errorHandler(w, r, err, nil)
 		return
 	}
-	result, err := c.service.UpdateCityById(r.Context(), idParam, cityParam)
+	result, err := c.service.UpdateByID(r.Context(), idParam, cityParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)

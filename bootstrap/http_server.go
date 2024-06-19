@@ -6,26 +6,25 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/gorilla/mux"
+	"go.uber.org/fx"
+
 	"github.com/NikolNikolaeva/project_weather/config"
 	api "github.com/NikolNikolaeva/project_weather/generated/api/project-weather/rest"
 	"github.com/NikolNikolaeva/project_weather/utils"
 
-	"github.com/gorilla/mux"
-	"go.uber.org/fx"
-
-	"github.com/NikolNikolaeva/project_weather/generated/dao"
 	"github.com/NikolNikolaeva/project_weather/repositories"
 	"github.com/NikolNikolaeva/project_weather/resources"
 	"github.com/NikolNikolaeva/project_weather/services"
+
+	gocron "github.com/go-co-op/gocron/v2"
 )
 
 var FXModule_HTTPServer = fx.Module(
 	"http-server",
 	fx.Provide(
 		createAPIRoutes,
-		createCityRepo,
 		createCityController,
-		createForecastRepo,
 		createForecastController,
 		createHTTPClient,
 		createWeatherHandler,
@@ -34,10 +33,12 @@ var FXModule_HTTPServer = fx.Module(
 		createHttpServer,
 		createConverter,
 		createMuxRouter,
+		createScheduler,
 	),
 	fx.Invoke(
 		registerServerStartHook,
-		fetchWeatherData,
+		registerSchedulerStartStopHook,
+		registerFetchWeatherDataCronJob,
 	),
 )
 
@@ -52,27 +53,19 @@ func createWeatherDataRetriever(client *http.Client) services.WeatherDataGetter 
 	return services.NewWeatherDataRetriever(client)
 }
 
-func createWeatherHandler(cityRepo repositories.CityRepo, forecastRepo repositories.ForecastRepo, getter services.WeatherDataGetter) services.WeatherHandler {
-	return services.NewWeatherHandler(cityRepo, forecastRepo, getter)
+func createWeatherHandler(cityRepo repositories.CityRepo, forecastRepo repositories.ForecastRepo, getter services.WeatherDataGetter) services.WeatherAPIClient {
+	return services.NewWeatherAPIClient(cityRepo, forecastRepo, getter)
 }
 
 func createHTTPClient() *http.Client {
 	return services.NewHTTPClient()
 }
 
-func createCityRepo(q *dao.Query) repositories.CityRepo {
-	return repositories.NewCityRepo(q)
+func createCityController(db repositories.CityRepo, convert resources.ConverterI, client services.WeatherAPIClient, configuration *config.ApplicationConfiguration) *api.CityAPIController {
+	return api.NewCityAPIController(services.NewAPIService(db, convert, client, configuration))
 }
 
-func createForecastRepo(q *dao.Query) repositories.ForecastRepo {
-	return repositories.NewForecastRepo(q)
-}
-
-func createCityController(db repositories.CityRepo, convert resources.ConverterI) *api.CityAPIController {
-	return api.NewCityAPIController(services.NewCityAPIService(db, convert))
-}
-
-func createForecastController(db repositories.ForecastRepo, convert resources.ConverterI, handler services.WeatherHandler, config *config.ApplicationConfiguration, DBCity repositories.CityRepo) *api.ForecastAPIController {
+func createForecastController(db repositories.ForecastRepo, convert resources.ConverterI, handler services.WeatherAPIClient, config *config.ApplicationConfiguration, DBCity repositories.CityRepo) *api.ForecastAPIController {
 	return api.NewForecastAPIController(services.NewForecastAPIService(db, convert, handler, config, DBCity))
 }
 
@@ -80,7 +73,7 @@ func createWeatherService(dataGetter services.WeatherDataGetter,
 	cityRepo repositories.CityRepo,
 	forecastRepo repositories.ForecastRepo,
 	configuration *config.ApplicationConfiguration,
-	handler services.WeatherHandler) services.WeatherService {
+	handler services.WeatherAPIClient) services.WeatherService {
 	return services.NewWeatherService(dataGetter, cityRepo, forecastRepo, configuration, handler)
 }
 
@@ -94,7 +87,7 @@ func createMuxRouter(routes api.Routes) *mux.Router {
 	return router
 }
 
-func createHttpServer(routes api.Routes, config *config.ApplicationConfiguration, router *mux.Router) *http.Server {
+func createHttpServer(config *config.ApplicationConfiguration, router *mux.Router) *http.Server {
 	return &http.Server{
 		Addr:    ":" + config.HTTPPort,
 		Handler: router,
@@ -105,9 +98,21 @@ func createConverter() resources.ConverterI {
 	return resources.NewConverter()
 }
 
-func fetchWeatherData(service services.WeatherService) {
-	go service.StartFetching(time.Second * 30)
+func createScheduler() (gocron.Scheduler, error) {
+	return gocron.NewScheduler()
+}
 
+func registerFetchWeatherDataCronJob(service services.WeatherService, s gocron.Scheduler) error {
+	_, err := s.NewJob(
+		gocron.DurationJob(
+			30*time.Second,
+		),
+		gocron.NewTask(
+			service.StartFetching,
+		),
+	)
+
+	return err
 }
 
 func registerServerStartHook(lc fx.Lifecycle, server *http.Server) {
@@ -123,6 +128,19 @@ func registerServerStartHook(lc fx.Lifecycle, server *http.Server) {
 			if err := server.Shutdown(context.Background()); err != nil {
 				log.Fatalf("failed to shutdown server: %v", err)
 			}
+		},
+	))
+}
+
+func registerSchedulerStartStopHook(lc fx.Lifecycle, scheduler gocron.Scheduler) {
+	lc.Append(fx.StartStopHook(
+		func() {
+			log.Println("starting scheduler...")
+			scheduler.Start()
+		},
+		func() {
+			log.Println("shutting scheduler down...")
+			_ = scheduler.Shutdown()
 		},
 	))
 }
