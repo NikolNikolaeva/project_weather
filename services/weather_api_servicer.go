@@ -30,12 +30,7 @@ func NewWeatherService(dataGetter WeatherDataGetter, cityRepo repositories.CityR
 }
 
 func (ws *weatherService) StartFetching() {
-	//ticker := time.NewTicker(interval)
-	//defer ticker.Stop()
-	//
-	//for range ticker.C {
 	ws.fetchAndStoreWeatherData()
-	//}
 }
 
 func (ws *weatherService) fetchAndStoreWeatherData() {
