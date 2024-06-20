@@ -4,9 +4,6 @@ import (
 	"context"
 	"errors"
 	"net/http"
-	"time"
-
-	"github.com/NikolNikolaeva/project_weather/generated/dao/model"
 
 	"github.com/NikolNikolaeva/project_weather/config"
 	api "github.com/NikolNikolaeva/project_weather/generated/api/project-weather/rest"
@@ -21,12 +18,12 @@ type ForecastAPIService struct {
 	DB      repositories.ForecastRepo
 	DBCity  repositories.CityRepo
 	Convert resources.ConverterI
-	handler WeatherHandler
+	handler WeatherAPIClient
 	config  *config.ApplicationConfiguration
 }
 
 // NewForecastAPIService creates a default api service
-func NewForecastAPIService(DB repositories.ForecastRepo, convert resources.ConverterI, handler WeatherHandler, config *config.ApplicationConfiguration, DBCity repositories.CityRepo) api.ForecastAPIServicer {
+func NewForecastAPIService(DB repositories.ForecastRepo, convert resources.ConverterI, handler WeatherAPIClient, config *config.ApplicationConfiguration, DBCity repositories.CityRepo) api.ForecastAPIServicer {
 	return &ForecastAPIService{
 		DB:      DB,
 		Convert: convert,
@@ -51,30 +48,25 @@ func (self *ForecastAPIService) getForecastsByCityId(ctx context.Context, cityId
 }
 
 func (self *ForecastAPIService) getDays(period string) int {
-	var days int
-
 	switch period {
-
 	case "daily":
-		days = 1
+		return 1
 	case "weekly":
-		days = 7
+		return 7
 	case "monthly":
-		days = 30
-	default:
-		days = 0
-	}
 
-	return days
+		return 14
+	default:
+		return 0
+	}
 }
 
-func (self *ForecastAPIService) GetForecastsByCityIdAndPeriod(ctx context.Context, cityId string, period string) (api.ImplResponse, error) {
-
+func (self *ForecastAPIService) GetByCityIdAndPeriod(ctx context.Context, cityId string, period string) (api.ImplResponse, error) {
 	if period == "" {
 		return self.getForecastsByCityId(ctx, cityId)
 	}
 
-	cityExist, err := self.DBCity.FindCityByID(cityId)
+	cityExist, err := self.DBCity.FindByID(cityId)
 	if err != nil {
 		return api.Response(http.StatusInternalServerError, nil), err
 	}
@@ -97,23 +89,12 @@ func (self *ForecastAPIService) GetForecastsByCityIdAndPeriod(ctx context.Contex
 	if days == 0 {
 		return api.Response(http.StatusNotImplemented, nil), errors.New("Invalid period. Please specify 'current', 'daily', 'weekly', or 'monthly'.")
 	}
-	today := time.Now()
-	var weekDates []time.Time
 
-	for i := 0; i < days; i++ {
-		date := today.AddDate(0, 0, i)
-		weekDates = append(weekDates, date)
-	}
+	forecasts, err := self.DB.FindByCityIdAndPeriodDays(cityId, days)
 
-	var forecasts []*model.Forecast
-	for _, date := range weekDates {
-		forecast, err := self.DB.FindByCityIdAndDate(cityId, date)
-		if err != nil {
-			return api.Response(http.StatusInternalServerError, nil), err
-		}
-		forecasts = append(forecasts, forecast)
+	if err != nil {
+		return api.Response(http.StatusInternalServerError, nil), err
 	}
 
 	return api.Response(http.StatusOK, forecasts), nil
-
 }

@@ -2,26 +2,24 @@ package services
 
 import (
 	"log"
-	"time"
 
 	"github.com/NikolNikolaeva/project_weather/config"
-	"github.com/NikolNikolaeva/project_weather/generated/dao/model"
 	"github.com/NikolNikolaeva/project_weather/repositories"
 )
 
 type WeatherService interface {
-	StartFetching(interval time.Duration)
+	StartFetching()
 }
 
 type weatherService struct {
 	dataGetter    WeatherDataGetter
 	cityRepo      repositories.CityRepo
 	forecastRepo  repositories.ForecastRepo
-	handler       WeatherHandler
+	handler       WeatherAPIClient
 	configuration *config.ApplicationConfiguration
 }
 
-func NewWeatherService(dataGetter WeatherDataGetter, cityRepo repositories.CityRepo, forecastRepo repositories.ForecastRepo, configuration *config.ApplicationConfiguration, handler WeatherHandler) WeatherService {
+func NewWeatherService(dataGetter WeatherDataGetter, cityRepo repositories.CityRepo, forecastRepo repositories.ForecastRepo, configuration *config.ApplicationConfiguration, handler WeatherAPIClient) WeatherService {
 	return &weatherService{
 		dataGetter:    dataGetter,
 		cityRepo:      cityRepo,
@@ -31,33 +29,26 @@ func NewWeatherService(dataGetter WeatherDataGetter, cityRepo repositories.CityR
 	}
 }
 
-func (ws *weatherService) StartFetching(interval time.Duration) {
-	ticker := time.NewTicker(interval)
-	defer ticker.Stop()
-
-	for range ticker.C {
-		ws.fetchAndStoreWeatherData()
-	}
+func (ws *weatherService) StartFetching() {
+	ws.fetchAndStoreWeatherData()
 }
 
 func (ws *weatherService) fetchAndStoreWeatherData() {
-	cities, err := ws.cityRepo.GetAllCity()
+	cities, err := ws.cityRepo.GetAll()
 	if err != nil {
 		log.Printf("Error fetching cities: %v", err)
 		return
 	}
 
 	for _, city := range cities {
-		ws.updateCityForecast(city)
+		ws.updateCityForecast(city.Name)
 	}
 }
 
-func (ws *weatherService) updateCityForecast(city *model.City) {
+func (ws *weatherService) updateCityForecast(cityName string) {
 
-	_, err := ws.handler.HandleForecast(city.Name, 30, ws.configuration.CredFile)
+	_, err := ws.handler.HandleForecast(cityName, 30, ws.configuration.CredFile)
 	if err != nil {
-		log.Printf("Error fetching forecast for city %s: %v", city.Name, err)
-		return
+		log.Printf("Error fetching forecast for city %s: %v", cityName, err)
 	}
-
 }

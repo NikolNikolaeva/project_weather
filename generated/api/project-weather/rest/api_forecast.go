@@ -50,16 +50,16 @@ func NewForecastAPIController(s ForecastAPIServicer, opts ...ForecastAPIOption) 
 // Routes returns all the api routes for the ForecastAPIController
 func (c *ForecastAPIController) Routes() Routes {
 	return Routes{
-		"GetForecastsByCityIdAndPeriod": Route{
+		"GetByCityIdAndPeriod": Route{
 			strings.ToUpper("Get"),
 			"/api/cities/{id}/forecasts",
-			c.GetForecastsByCityIdAndPeriod,
+			c.GetByCityIdAndPeriod,
 		},
 	}
 }
 
-// GetForecastsByCityIdAndPeriod -
-func (c *ForecastAPIController) GetForecastsByCityIdAndPeriod(w http.ResponseWriter, r *http.Request) {
+// GetByCityIdAndPeriod -
+func (c *ForecastAPIController) GetByCityIdAndPeriod(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	query, err := parseQuery(r.URL.RawQuery)
 	if err != nil {
@@ -77,10 +77,8 @@ func (c *ForecastAPIController) GetForecastsByCityIdAndPeriod(w http.ResponseWri
 
 		periodParam = param
 	} else {
-		c.errorHandler(w, r, &RequiredError{Field: "period"}, nil)
-		return
 	}
-	result, err := c.service.GetForecastsByCityIdAndPeriod(r.Context(), idParam, periodParam)
+	result, err := c.service.GetByCityIdAndPeriod(r.Context(), idParam, periodParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)

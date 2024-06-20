@@ -12,6 +12,7 @@ import (
 type WeatherDataGetter interface {
 	GetCurrentData(q string, key string) (*api.Current, *api.Location, error)
 	GetForecastData(q string, days int32, key string) (*api.Forecast, *api.Location, error)
+	GetLocation(q string, key string) (*api.Location, error)
 }
 
 type weatherDataGetter struct {
@@ -42,6 +43,27 @@ func (self *weatherDataGetter) GetCurrentData(q string, key string) (*api.Curren
 	}
 
 	return weather.Current, weather.Location, nil
+
+}
+
+func (self *weatherDataGetter) GetLocation(q string, key string) (*api.Location, error) {
+
+	config := api.NewConfiguration()
+	client := api.NewAPIClient(config)
+
+	ctx := context.WithValue(context.Background(), api.ContextAPIKey, api.APIKey{Key: key})
+
+	weather, resp, err := client.APIsApi.RealtimeWeather(ctx, q, nil)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("Error calling realtime weather: %s", resp.Status)
+	}
+
+	return weather.Location, nil
 
 }
 
