@@ -37,7 +37,7 @@ func (ws *weatherService) StartFetching() {
 func (ws *weatherService) fetchAndStoreWeatherData() {
 	cities, err := ws.cityRepo.GetAll()
 	if err != nil {
-		log.Printf("Error fetching cities: %v", err)
+		log.Printf("Error fetching cities")
 		return
 	}
 

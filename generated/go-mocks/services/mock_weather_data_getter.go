@@ -71,3 +71,18 @@ func (mr *MockWeatherDataGetterMockRecorder) GetForecastData(arg0, arg1, arg2 an
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetForecastData", reflect.TypeOf((*MockWeatherDataGetter)(nil).GetForecastData), arg0, arg1, arg2)
 }
+
+// GetLocation mocks base method.
+func (m *MockWeatherDataGetter) GetLocation(arg0, arg1 string) (*weatherapi.Location, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetLocation", arg0, arg1)
+	ret0, _ := ret[0].(*weatherapi.Location)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetLocation indicates an expected call of GetLocation.
+func (mr *MockWeatherDataGetterMockRecorder) GetLocation(arg0, arg1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLocation", reflect.TypeOf((*MockWeatherDataGetter)(nil).GetLocation), arg0, arg1)
+}
