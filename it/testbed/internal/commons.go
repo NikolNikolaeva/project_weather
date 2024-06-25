@@ -3,18 +3,17 @@ package internal
 import (
 	"context"
 	"database/sql"
-	"log"
-	"os"
-
-	"github.com/magiconair/properties"
-
 	"github.com/NikolNikolaeva/project_weather/bootstrap"
 	"github.com/NikolNikolaeva/project_weather/it/testbed/internal/gomisc/lang"
 	arrays "github.com/NikolNikolaeva/project_weather/it/testbed/internal/gomisc/lang/array"
+	"github.com/NikolNikolaeva/project_weather/it/testbed/internal/gomisc/logs"
+	"os"
 
 	"go.uber.org/fx"
 	gpg "gorm.io/driver/postgres"
 	"gorm.io/gorm"
+
+	"github.com/magiconair/properties"
 )
 
 const DatabaseDriver = "postgres"
@@ -44,15 +43,15 @@ func NewFXApplication(ctx context.Context) (*fx.App, func()) {
 	app := fx.New(
 		fx.NopLogger,
 		fx.Module(
-			"stubs",
+			"",
 			fx.Provide(
-				func() { log.Println("starting application") },
+				func() logs.Logger { return logs.NopLogger },
 			),
 		),
 
+		bootstrap.FXModule_HTTPServer,
 		bootstrap.FXModule_Core,
 		bootstrap.FXModule_Persistence,
-		bootstrap.FXModule_HTTPServer,
 	)
 
 	return lang.Must(app, app.Start(ctx)), func() { _ = app.Stop(ctx) }

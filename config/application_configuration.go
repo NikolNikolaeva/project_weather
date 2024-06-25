@@ -39,4 +39,6 @@ type ApplicationConfiguration struct {
 	CurrentTimeUrl string `envconfig:"CURRENT_TIME_URL" default:"http://api.weatherapi.com/v1/current.json?key=%s&q=%s&aqi=no"`
 
 	CredFile string `envconfig:"CRED_FILE" default:"cred.json"`
+
+	fakeWeatherApi string `envconfig:"FAKE_CFS_URL" default:"http://localhost:8081"`
 }

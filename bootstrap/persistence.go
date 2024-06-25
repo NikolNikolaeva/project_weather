@@ -87,7 +87,7 @@ func createEntityManager(db *gorm.DB) *dao.Query {
 }
 
 func createDatabaseMigrator(config *config.ApplicationConfiguration, driver database.Driver) (*migrate.Migrate, error) {
-	return migrate.NewWithDatabaseInstance(fmt.Sprintf("file://%v", "./resources/migrations"), "postgres", driver)
+	return migrate.NewWithDatabaseInstance(fmt.Sprintf("file://%v", "../../resources/migrations"), "postgres", driver)
 }
 
 func performDatabaseSchemaMigration(migrator *migrate.Migrate) error {
