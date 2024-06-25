@@ -4,17 +4,20 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
+	"testing"
+
+	"go.uber.org/mock/gomock"
+
 	"github.com/NikolNikolaeva/project_weather/generated/api/weatherapi"
 	"github.com/NikolNikolaeva/project_weather/generated/dao/model"
 	mock_repositories "github.com/NikolNikolaeva/project_weather/generated/go-mocks/repositories"
 	mock_resources "github.com/NikolNikolaeva/project_weather/generated/go-mocks/resources"
 	mock_services "github.com/NikolNikolaeva/project_weather/generated/go-mocks/services"
-	"go.uber.org/mock/gomock"
-	"net/http"
-	"testing"
+
+	"github.com/stretchr/testify/assert"
 
 	"github.com/NikolNikolaeva/project_weather/config"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestForecastAPIService_GetByCityIdAndPeriod(t *testing.T) {

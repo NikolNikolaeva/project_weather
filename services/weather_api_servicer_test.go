@@ -3,14 +3,16 @@ package services
 import (
 	"bytes"
 	"fmt"
+	"log"
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"go.uber.org/mock/gomock"
+
 	"github.com/NikolNikolaeva/project_weather/config"
 	"github.com/NikolNikolaeva/project_weather/generated/dao/model"
 	mock_repositories "github.com/NikolNikolaeva/project_weather/generated/go-mocks/repositories"
 	mock_services "github.com/NikolNikolaeva/project_weather/generated/go-mocks/services"
-	"github.com/stretchr/testify/assert"
-	"go.uber.org/mock/gomock"
-	"log"
-	"testing"
 )
 
 func TestWeatherService_StartFetching(t *testing.T) {

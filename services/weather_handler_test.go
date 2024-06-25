@@ -1,11 +1,13 @@
 package services
 
 import (
-	mock_repositories "github.com/NikolNikolaeva/project_weather/generated/go-mocks/repositories"
-	mock_services "github.com/NikolNikolaeva/project_weather/generated/go-mocks/services"
+	"testing"
+
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
-	"testing"
+
+	mock_repositories "github.com/NikolNikolaeva/project_weather/generated/go-mocks/repositories"
+	mock_services "github.com/NikolNikolaeva/project_weather/generated/go-mocks/services"
 )
 
 func Test_HandleCurrantData(t *testing.T) {
