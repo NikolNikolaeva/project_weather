@@ -93,3 +93,11 @@ func (self *Runner) FailIf(err error) {
 		self.Context.Cancel(errors.Wrap(err, "unexpected error received"))
 	}
 }
+
+func (self *Runner) CreateCurrentForecastWeather(name string, days int32) *api.Current {
+
+	forecast, err := self.Handler.HandleCurrantData(name, self.Config.CredFile)
+	Expect(err).ShouldNot(HaveOccurred())
+
+	return forecast
+}

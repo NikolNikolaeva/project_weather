@@ -3,6 +3,7 @@ package testbed
 import (
 	"encoding/json"
 	"fmt"
+	api "github.com/NikolNikolaeva/project_weather/generated/api/weatherapi"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -40,6 +41,22 @@ func CreateForecastsGetForecastRequestMatcher(cityId string) RequestMatcher {
 	return func(request *http.Request) bool {
 		return request.Method == http.MethodGet &&
 			request.URL.Path == fmt.Sprintf("/forecasts/%s", cityId)
+	}
+}
+
+func CreateWeatherDataRequestMatcher(cityId string, period string) RequestMatcher {
+	return func(request *http.Request) bool {
+		return request.Method == http.MethodGet &&
+			request.URL.Path == fmt.Sprintf("cities/%v/forecasts?period=%v", cityId, period)
+	}
+}
+
+func CreateWeatherDataResponder(current *api.Current) Responder {
+	return func(writer http.ResponseWriter) {
+		writer.WriteHeader(http.StatusOK)
+		lang.Must(writer.Write(lang.Must(
+			json.Marshal(current),
+		)))
 	}
 }
 

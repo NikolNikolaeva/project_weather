@@ -44,15 +44,15 @@ func (self *weatherAPIClient) HandleCurrantData(q string, cred string) (*api.Cur
 	if err != nil {
 		return nil, err
 	}
-	currentData, location, err := self.weatherDataGetter.GetCurrentData(q, key)
+	currentData, _, err := self.weatherDataGetter.GetCurrentData(q, key)
 	if err != nil {
 		return nil, err
 	}
 
-	_, err = self.handleCity(location)
-	if err != nil {
-		return nil, err
-	}
+	//_, err = self.handleCity(location)
+	//if err != nil {
+	//	return nil, err
+	//}
 
 	output := self.formCurrentData(currentData)
 
