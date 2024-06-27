@@ -2,9 +2,10 @@ package logs
 
 import (
 	"context"
-	arrays "github.com/NikolNikolaeva/project_weather/it/testbed/internal/gomisc/lang/array"
 	"io"
 	"log/slog"
+
+	arrays "github.com/NikolNikolaeva/project_weather/it/internal/gomisc/lang/array"
 )
 
 type Handler interface {

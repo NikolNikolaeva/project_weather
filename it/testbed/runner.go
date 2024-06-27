@@ -4,8 +4,14 @@ import (
 	"net/url"
 	"testing"
 
+	"github.com/NikolNikolaeva/project_weather/config"
+	api "github.com/NikolNikolaeva/project_weather/generated/api/weatherapi"
+	"github.com/NikolNikolaeva/project_weather/repositories"
+	"github.com/NikolNikolaeva/project_weather/resources"
+	"github.com/NikolNikolaeva/project_weather/services"
+
 	"github.com/NikolNikolaeva/project_weather/generated/dao"
-	appcontext "github.com/NikolNikolaeva/project_weather/it/testbed/internal/app_context"
+	appcontext "github.com/NikolNikolaeva/project_weather/it/internal/app_context"
 
 	"github.com/pkg/errors"
 
@@ -23,6 +29,13 @@ type Runner struct {
 	Dao            *dao.Query
 	APIClient      *client.APIClient
 	Context        appcontext.Context
+	Config         *config.ApplicationConfiguration
+	Handler        services.WeatherAPIClient
+	Converter      resources.ConverterI
+	ForecastRepo   repositories.ForecastRepo
+	CityRepo       repositories.CityRepo
+	ApiData        api.InlineResponse2002
+	Service        services.WeatherService
 }
 
 func (self *Runner) Reset() *Runner {
@@ -55,6 +68,22 @@ func (self *Runner) CreateForecast(forecast *model.Forecast) *model.Forecast {
 	Expect(
 		self.Dao.Forecast.WithContext(self.Context).Create(forecast),
 	).ShouldNot(HaveOccurred())
+
+	return forecast
+}
+
+func (self *Runner) CreateCurrentWeather(name string) *api.Current {
+
+	curr, err := self.Handler.HandleCurrantData(name, self.Config.CredFile)
+	Expect(err).ShouldNot(HaveOccurred())
+
+	return curr
+}
+
+func (self *Runner) CreateForecastWeather(name string, days int32) *api.Forecast {
+
+	forecast, err := self.Handler.HandleForecast(name, days, self.Config.CredFile)
+	Expect(err).ShouldNot(HaveOccurred())
 
 	return forecast
 }

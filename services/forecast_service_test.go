@@ -3,7 +3,6 @@ package services
 import (
 	"context"
 	"errors"
-	"fmt"
 	"net/http"
 	"testing"
 
@@ -73,7 +72,6 @@ func TestForecastAPIService_GetByCityIdAndPeriod(t *testing.T) {
 		mockDBCity.EXPECT().FindByID("123").Return(nil, errors.New("database error"))
 
 		resp, err := service.GetByCityIdAndPeriod(ctx, "123", "daily")
-		fmt.Println(err)
 		assert.Error(t, err)
 		assert.Equal(t, http.StatusInternalServerError, resp.Code)
 		assert.Error(t, err, "database error")

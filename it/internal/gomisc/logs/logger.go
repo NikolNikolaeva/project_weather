@@ -9,7 +9,7 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/NikolNikolaeva/project_weather/it/testbed/internal/gomisc/lang"
+	"github.com/NikolNikolaeva/project_weather/it/internal/gomisc/lang"
 )
 
 type ContextKey string

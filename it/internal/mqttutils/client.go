@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/NikolNikolaeva/project_weather/it/testbed/internal/gomisc/types/pair"
-	"github.com/NikolNikolaeva/project_weather/it/testbed/internal/gomisc/types/syncmap"
+	"github.com/NikolNikolaeva/project_weather/it/internal/gomisc/types/pair"
+	"github.com/NikolNikolaeva/project_weather/it/internal/gomisc/types/syncmap"
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 )

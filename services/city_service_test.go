@@ -98,7 +98,7 @@ func Test_DeleteById(t *testing.T) {
 	}
 
 	t.Run("Success", func(t *testing.T) {
-		mockRepo.EXPECT().FindByID(cityID).Return(modelCity, nil)
+		mockRepo.EXPECT().FindByID("1").Return(modelCity, nil)
 		mockRepo.EXPECT().DeleteByID(cityID).Return(gen.ResultInfo{}, nil)
 		mockConverter.EXPECT().ConvertModelCityToApiCity(modelCity).Return(apiCity)
 
@@ -109,7 +109,7 @@ func Test_DeleteById(t *testing.T) {
 	})
 
 	t.Run("City Not Found", func(t *testing.T) {
-		mockRepo.EXPECT().FindByID(cityID).Return(nil, errors.New("city not found"))
+		mockRepo.EXPECT().FindByID("1").Return(nil, errors.New("city not found"))
 
 		response, err := service.DeleteById(context.Background(), cityID)
 		assert.Error(t, err)

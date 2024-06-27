@@ -40,5 +40,5 @@ type ApplicationConfiguration struct {
 
 	CredFile string `envconfig:"CRED_FILE" default:"cred.json"`
 
-	fakeWeatherApi string `envconfig:"FAKE_CFS_URL" default:"http://localhost:8081"`
+	//FakeWeatherApi string `envconfig:"FAKE_CFS_URL" default:"http://localhost:8081"`
 }

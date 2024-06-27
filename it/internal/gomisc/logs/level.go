@@ -4,7 +4,7 @@ import (
 	"log/slog"
 	"strings"
 
-	"github.com/NikolNikolaeva/project_weather/it/testbed/internal/gomisc/lang/array"
+	arrays "github.com/NikolNikolaeva/project_weather/it/internal/gomisc/lang/array"
 )
 
 var (

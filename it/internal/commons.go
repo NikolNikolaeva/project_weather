@@ -3,11 +3,12 @@ package internal
 import (
 	"context"
 	"database/sql"
-	"github.com/NikolNikolaeva/project_weather/bootstrap"
-	"github.com/NikolNikolaeva/project_weather/it/testbed/internal/gomisc/lang"
-	arrays "github.com/NikolNikolaeva/project_weather/it/testbed/internal/gomisc/lang/array"
-	"github.com/NikolNikolaeva/project_weather/it/testbed/internal/gomisc/logs"
 	"os"
+
+	"github.com/NikolNikolaeva/project_weather/bootstrap"
+	"github.com/NikolNikolaeva/project_weather/it/internal/gomisc/lang"
+	arrays "github.com/NikolNikolaeva/project_weather/it/internal/gomisc/lang/array"
+	"github.com/NikolNikolaeva/project_weather/it/internal/gomisc/logs"
 
 	"go.uber.org/fx"
 	gpg "gorm.io/driver/postgres"
@@ -49,9 +50,9 @@ func NewFXApplication(ctx context.Context) (*fx.App, func()) {
 			),
 		),
 
-		bootstrap.FXModule_HTTPServer,
 		bootstrap.FXModule_Core,
 		bootstrap.FXModule_Persistence,
+		bootstrap.FXModule_HTTPServer,
 	)
 
 	return lang.Must(app, app.Start(ctx)), func() { _ = app.Stop(ctx) }

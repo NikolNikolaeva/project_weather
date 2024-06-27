@@ -8,9 +8,9 @@ import (
 	"strconv"
 
 	clientapi "github.com/NikolNikolaeva/project_weather/generated/api/project-weather/rest"
-	"github.com/NikolNikolaeva/project_weather/it/testbed/internal/gomisc/lang"
-	"github.com/NikolNikolaeva/project_weather/it/testbed/internal/gomisc/lang/array"
-	"github.com/NikolNikolaeva/project_weather/it/testbed/internal/gomisc/types/pair"
+	"github.com/NikolNikolaeva/project_weather/it/internal/gomisc/lang"
+	arrays "github.com/NikolNikolaeva/project_weather/it/internal/gomisc/lang/array"
+	"github.com/NikolNikolaeva/project_weather/it/internal/gomisc/types/pair"
 )
 
 type Responder func(http.ResponseWriter)
@@ -43,11 +43,11 @@ func CreateForecastsGetForecastRequestMatcher(cityId string) RequestMatcher {
 	}
 }
 
-func CreateCityGetCityResponder(cityName string) Responder {
+func CreateCityGetCityResponder(cityName string, country string) Responder {
 	return func(writer http.ResponseWriter) {
 		writer.WriteHeader(http.StatusOK)
 		lang.Must(writer.Write(lang.Must(
-			json.Marshal(&clientapi.City{Name: cityName}),
+			json.Marshal(&clientapi.City{Name: cityName, Country: country}),
 		)))
 	}
 }

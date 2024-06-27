@@ -3,7 +3,7 @@ inputSpec: resources/openapi/api.yaml
 outputDir: it/testbed/generated/client
 additionalProperties:
   packageName: client
-  sourceFolder: api
+  sourceFolder: rest
   onlyInterfaces: true
   enumClassPrefix: true
   outputAsLibrary: true

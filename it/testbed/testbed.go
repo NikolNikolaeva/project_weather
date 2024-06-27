@@ -11,10 +11,10 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/NikolNikolaeva/project_weather/generated/dao"
+	"github.com/NikolNikolaeva/project_weather/it/internal"
+	appcontext "github.com/NikolNikolaeva/project_weather/it/internal/app_context"
+	"github.com/NikolNikolaeva/project_weather/it/internal/gomisc/lang"
 	"github.com/NikolNikolaeva/project_weather/it/testbed/generated/client"
-	internal "github.com/NikolNikolaeva/project_weather/it/testbed/internal"
-	appcontext "github.com/NikolNikolaeva/project_weather/it/testbed/internal/app_context"
-	"github.com/NikolNikolaeva/project_weather/it/testbed/internal/gomisc/lang"
 )
 
 var instance *testbed

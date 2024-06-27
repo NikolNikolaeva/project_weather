@@ -4,11 +4,11 @@ import (
 	"encoding/json"
 	"sync"
 
-	"github.com/NikolNikolaeva/project_weather/it/testbed/internal/gomisc/lang"
-	arrays "github.com/NikolNikolaeva/project_weather/it/testbed/internal/gomisc/lang/array"
-	"github.com/NikolNikolaeva/project_weather/it/testbed/internal/gomisc/lang/maps"
-	"github.com/NikolNikolaeva/project_weather/it/testbed/internal/gomisc/types/entry"
-	"github.com/NikolNikolaeva/project_weather/it/testbed/internal/gomisc/types/pair"
+	"github.com/NikolNikolaeva/project_weather/it/internal/gomisc/lang"
+	arrays "github.com/NikolNikolaeva/project_weather/it/internal/gomisc/lang/array"
+	"github.com/NikolNikolaeva/project_weather/it/internal/gomisc/lang/maps"
+	"github.com/NikolNikolaeva/project_weather/it/internal/gomisc/types/entry"
+	"github.com/NikolNikolaeva/project_weather/it/internal/gomisc/types/pair"
 )
 
 type Updater[V any] func(V, bool) (V, bool)

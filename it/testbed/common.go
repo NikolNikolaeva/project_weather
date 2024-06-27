@@ -2,9 +2,12 @@ package testbed
 
 import (
 	"fmt"
+	"time"
+
+	api "github.com/NikolNikolaeva/project_weather/generated/api/weatherapi"
+
 	"github.com/NikolNikolaeva/project_weather/generated/dao/model"
 	"github.com/NikolNikolaeva/project_weather/it/testbed/generated/client"
-	"time"
 )
 
 func NewTestCity() *model.City {
@@ -13,8 +16,8 @@ func NewTestCity() *model.City {
 		ID:        "1",
 		Name:      "Sofia",
 		Country:   "Bulgaria",
-		Longitude: "0",
-		Latitude:  "0",
+		Longitude: "",
+		Latitude:  "",
 	}
 }
 
@@ -24,11 +27,9 @@ func AsCityDto(city *model.City) client.City {
 	}
 
 	return client.City{
-		Id:        &city.ID,
-		Name:      city.Name,
-		Country:   city.Country,
-		Longitude: &city.Longitude,
-		Latitude:  &city.Latitude,
+		Id:      &city.ID,
+		Name:    city.Name,
+		Country: city.Country,
 	}
 }
 
@@ -53,5 +54,27 @@ func AsForecastDto(forecast *model.Forecast) client.Forecast {
 		Condition:    forecast.Condition,
 		Temperature:  forecast.Temperature,
 		ForecastDate: fmt.Sprintf("%v", forecast.ForecastDate),
+	}
+}
+
+func NewTestCurrentWeather() *api.Current {
+	return &api.Current{
+		TempC: 15.0,
+		Condition: &api.CurrentCondition{
+			Text: "Sunny",
+		},
+	}
+}
+
+func NewTestForecastDayWeather() *api.Forecast {
+	return &api.Forecast{
+		Forecastday: []api.ForecastForecastday{
+			{Date: "2006-01-01",
+				Day: &api.ForecastDay{
+					Condition: &api.ForecastDayCondition{
+						Text: "Sunny",
+					},
+				}},
+		},
 	}
 }
