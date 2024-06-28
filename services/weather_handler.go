@@ -17,6 +17,7 @@ const (
 	templateDateAndTime = "2006-01-02 15:04 "
 )
 
+//go:generate mockgen --build_flags=--mod=mod -destination ../generated/go-mocks/services/mock_weather_handler.go . WeatherAPIClient
 type WeatherAPIClient interface {
 	HandleCurrantData(q string, cred string) (*api.Current, error)
 	HandleForecast(q string, days int32, cred string) (*api.Forecast, error)
@@ -169,6 +170,9 @@ func (self *weatherAPIClient) formForecastData(data *api.ForecastForecastday) *a
 
 func (self *weatherAPIClient) HandleCityData(name string, cred string) *api.Location {
 	key, err := resources.GetApiKey(cred)
+	if err != nil {
+		return nil
+	}
 	location, err := self.weatherDataGetter.GetLocation(name, key)
 	if err != nil {
 		log.Printf("Error getting current data: %v", err)
