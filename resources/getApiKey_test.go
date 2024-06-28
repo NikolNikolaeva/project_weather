@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestGetApiKey(t *testing.T) {
+func TestGetApiKey_Success(t *testing.T) {
 	cred := `{"apiKey": "test_key"}`
 
 	tmpFile, err := os.CreateTemp("", "test_cred.json")
@@ -18,29 +18,27 @@ func TestGetApiKey(t *testing.T) {
 	assert.NoError(t, err)
 	tmpFile.Close()
 
-	t.Run("Success", func(t *testing.T) {
-		apiKey, err := GetApiKey(tmpFile.Name())
-		assert.NoError(t, err)
-		assert.Equal(t, "test_key", apiKey)
-	})
+	apiKey, err := GetApiKey(tmpFile.Name())
+	assert.NoError(t, err)
+	assert.Equal(t, "test_key", apiKey)
+}
 
-	t.Run("File Not Found", func(t *testing.T) {
-		apiKey, err := GetApiKey("non_existent_file.json")
-		assert.Error(t, err)
-		assert.Equal(t, "", apiKey)
-	})
+func TestGetApiKey_FileNotFound(t *testing.T) {
+	apiKey, err := GetApiKey("non_existent_file.json")
+	assert.Error(t, err)
+	assert.Equal(t, "", apiKey)
+}
 
-	t.Run("Invalid JSON", func(t *testing.T) {
-		incredFile, err := os.CreateTemp("", "invalid_test_cred_*.json")
-		assert.NoError(t, err)
-		defer os.Remove(incredFile.Name())
+func TestGetApiKey_InvalidJSON(t *testing.T) {
+	incredFile, err := os.CreateTemp("", "invalid_test_cred_*.json")
+	assert.NoError(t, err)
+	defer os.Remove(incredFile.Name())
 
-		_, err = incredFile.WriteString(`{"apiKey": `) //invalid json
-		assert.NoError(t, err)
-		incredFile.Close()
+	_, err = incredFile.WriteString(`{"apiKey": `) // Invalid JSON
+	assert.NoError(t, err)
+	incredFile.Close()
 
-		apiKey, err := GetApiKey(incredFile.Name())
-		assert.Error(t, err)
-		assert.Equal(t, "", apiKey)
-	})
+	apiKey, err := GetApiKey(incredFile.Name())
+	assert.Error(t, err)
+	assert.Equal(t, "", apiKey)
 }

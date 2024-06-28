@@ -35,14 +35,14 @@ func NewAPIService(db repositories.CityRepo, convert resources.ConverterI, handl
 
 // DeleteById -
 func (s *CityAPIService) DeleteById(ctx context.Context, id string) (api.ImplResponse, error) {
+	if id == "" {
+		return api.Response(http.StatusBadRequest, "id is required"), nil
+	}
+
 	city, err := s.DB.FindByID(id)
 
 	if err != nil {
 		return api.Response(http.StatusNotFound, "City not found"), err
-	}
-
-	if id == "" {
-		return api.Response(http.StatusBadRequest, "id is required"), nil
 	}
 	_, err = s.DB.DeleteByID(id)
 	if err != nil {
