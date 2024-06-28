@@ -44,7 +44,14 @@ func (self *ForecastAPIService) getForecastsByCityId(ctx context.Context, cityId
 		return api.Response(http.StatusInternalServerError, nil), err
 	}
 
-	return api.Response(http.StatusOK, forecasts), nil
+	var forecastsApi []api.Forecast
+
+	for _, forecast := range forecasts {
+		forecastApi := self.Convert.ConvertModelForecastToApiForecast(forecast)
+		forecastsApi = append(forecastsApi, *forecastApi)
+	}
+
+	return api.Response(http.StatusOK, forecastsApi), nil
 }
 
 func (self *ForecastAPIService) getDays(period string) int {

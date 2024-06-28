@@ -35,14 +35,14 @@ func NewAPIService(db repositories.CityRepo, convert resources.ConverterI, handl
 
 // DeleteById -
 func (s *CityAPIService) DeleteById(ctx context.Context, id string) (api.ImplResponse, error) {
+	if id == "" {
+		return api.Response(http.StatusBadRequest, "id is required"), nil
+	}
+
 	city, err := s.DB.FindByID(id)
 
 	if err != nil {
 		return api.Response(http.StatusNotFound, "City not found"), err
-	}
-
-	if id == "" {
-		return api.Response(http.StatusBadRequest, "id is required"), nil
 	}
 	_, err = s.DB.DeleteByID(id)
 	if err != nil {
@@ -93,7 +93,7 @@ func (s *CityAPIService) Register(ctx context.Context, city api.City) (api.ImplR
 	cityModel := s.Convert.ConvertApiCityToModelCity(&city)
 
 	location := s.handler.HandleCityData(cityModel.Name, s.config.CredFile)
-
+	fmt.Println(location)
 	cityModel.Latitude = fmt.Sprintf("%f", location.Lat)
 	cityModel.Longitude = fmt.Sprintf("%f", location.Lon)
 

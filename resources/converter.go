@@ -8,6 +8,7 @@ import (
 	"github.com/NikolNikolaeva/project_weather/generated/dao/model"
 )
 
+//go:generate mockgen --build_flags=--mod=mod -destination ../generated/go-mocks/resources/mock_converter.go . ConverterI
 type ConverterI interface {
 	ConvertApiCityToModelCity(cityApi *api.City) *model.City
 	ConvertModelCityToApiCity(cityModel *model.City) *api.City

@@ -71,6 +71,21 @@ func (mr *MockCityRepoMockRecorder) FindByID(arg0 any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindByID", reflect.TypeOf((*MockCityRepo)(nil).FindByID), arg0)
 }
 
+// FindByNameAndCountry mocks base method.
+func (m *MockCityRepo) FindByNameAndCountry(arg0, arg1 string) (*model.City, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FindByNameAndCountry", arg0, arg1)
+	ret0, _ := ret[0].(*model.City)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FindByNameAndCountry indicates an expected call of FindByNameAndCountry.
+func (mr *MockCityRepoMockRecorder) FindByNameAndCountry(arg0, arg1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindByNameAndCountry", reflect.TypeOf((*MockCityRepo)(nil).FindByNameAndCountry), arg0, arg1)
+}
+
 // GetAll mocks base method.
 func (m *MockCityRepo) GetAll() ([]*model.City, error) {
 	m.ctrl.T.Helper()

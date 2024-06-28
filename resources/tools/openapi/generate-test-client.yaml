@@ -1,0 +1,12 @@
+generatorName: go
+inputSpec: resources/openapi/api.yaml
+outputDir: it/testbed/generated/client
+additionalProperties:
+  packageName: client
+  sourceFolder: rest
+  onlyInterfaces: true
+  enumClassPrefix: true
+  outputAsLibrary: true
+  packageVersion: 1.0.0
+  addResponseHeaders: false
+  hideGenerationTimestamp: true

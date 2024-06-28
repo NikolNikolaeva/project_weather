@@ -7,6 +7,7 @@ import (
 	"github.com/NikolNikolaeva/project_weather/repositories"
 )
 
+//go:generate mockgen --build_flags=--mod=mod -destination ../generated/go-mocks/services/mock_weather_api_service.go . WeatherService
 type WeatherService interface {
 	StartFetching()
 }
@@ -36,7 +37,7 @@ func (ws *weatherService) StartFetching() {
 func (ws *weatherService) fetchAndStoreWeatherData() {
 	cities, err := ws.cityRepo.GetAll()
 	if err != nil {
-		log.Printf("Error fetching cities: %v", err)
+		log.Printf("Error fetching cities")
 		return
 	}
 
